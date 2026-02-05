@@ -1,5 +1,12 @@
 package com.library.entities;
 
+import java.util.List;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -7,9 +14,15 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Author extends Entity {
-    private String firstName;
+@Entity
+@Table(name = "author")
+public class Author extends AbstractEntity {
+    
+    String firstName;
 
-    private String lastName;
+    String lastName;
+
+    @OneToMany(mappedBy = "author")
+    private List<Book> books; 
 
 }

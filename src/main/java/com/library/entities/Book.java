@@ -6,16 +6,25 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
 @NoArgsConstructor
 @Getter
 @Setter
-public class Book extends Entity {
-    private String title;
+@Entity
+@Table(name = "books")
+public class Book extends AbstractEntity {
 
-    private String author;
+    String title;
 
-    private String isbn;
+    String isbn;
 
-    private LocalDate publicationDate;
+    LocalDate publicationDate;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    Author author;
 
 }
