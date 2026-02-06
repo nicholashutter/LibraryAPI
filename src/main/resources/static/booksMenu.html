@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Books - Library API</title>
+    <style>
+        body {
+            font-family: "Roboto", "Segoe UI", Tahoma, sans-serif;
+            background-color: #eeeeee;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        .container-card {
+            background: white;
+            width: 400px;
+            padding: 2rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Books Accent Color: Indigo */
+        h2 {
+            margin-top: 0;
+            font-weight: 500;
+            color: #3f51b5;
+            border-bottom: 2px solid #e8eaf6;
+            padding-bottom: 10px;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-action {
+            display: block;
+            margin: 12px auto;
+            width: 90%;
+            padding: 14px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        /* View Choice (Indigo Outline) */
+        .btn-view {
+            background-color: #ffffff;
+            color: #3f51b5;
+            border: 1px solid #3f51b5;
+        }
+
+        .btn-view:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Add Choice (Amber/Gold for Books) */
+        .btn-add {
+            background-color: #ffb300;
+            color: #000;
+            /* Darker text for contrast on yellow */
+        }
+
+        .btn-add:hover {
+            background-color: #ffa000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .back-link {
+            margin-top: 20px;
+            display: inline-block;
+            color: #757575;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .back-link:hover {
+            color: #333;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container-card">
+        <h2>Books Management</h2>
+        <p>Browse or expand your library collection.</p>
+
+        <a href="viewBooks.html" class="btn-action btn-view">View All Books</a>
+        <a href="addBooks.html" class="btn-action btn-add">+ Add New Book</a>
+
+        <a href="index.html" class="back-link">← Return to Main Menu</a>
+    </div>
+
+</body>
+
+</html>

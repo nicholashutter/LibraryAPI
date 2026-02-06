@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.library.entities.BookDTO;
+import com.library.mappers.BookMapper;
 import com.library.persistence.BookRepository;
-import com.library.services.mappers.BookMapper;
 
 @Service
 public class BookService {
@@ -23,7 +23,8 @@ public class BookService {
     }
 
     public List<BookDTO> getAllBooks() {
-        // get all matching entries
-        return bookRepository.findAll().stream().map(BookMapper::toDTO).toList();
+        // find all, map to DTO, filter out placeholder books, return list
+        return bookRepository.findAll().stream().map(BookMapper::toDTO)
+                .filter(book -> !book.isbn().equals("000-0000000000")).toList();
     }
 }

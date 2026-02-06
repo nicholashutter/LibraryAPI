@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Books - Library API</title>
+    <style>
+        body {
+            font-family: "Roboto", "Segoe UI", Tahoma, sans-serif;
+            background-color: #eeeeee;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Books Indigo Theme */
+        h2 {
+            margin: 0;
+            font-weight: 500;
+            color: #3f51b5;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .data-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Material Accent Strip on the side */
+        .data-card::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            background-color: #ffb300;
+            /* Amber accent */
+        }
+
+        .book-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #222;
+            margin-bottom: 5px;
+        }
+
+        .book-author {
+            font-size: 0.9rem;
+            color: #3f51b5;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .genre-badge {
+            display: inline-block;
+            background: #f5f5f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #666;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: #3f51b5;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        #status-msg {
+            margin-top: 50px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h2>Books Collection</h2>
+        <a href="booksMenu.html" class="back-btn">← Back to Menu</a>
+    </header>
+
+    <div id="status-msg">Loading library catalog...</div>
+
+    <div class="grid-container" id="books-grid">
+    </div>
+
+    <script>
+        const API_URL = '/books';
+
+        async function fetchBooks()
+        {
+            try
+            {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('API Error');
+
+                const books = await response.json();
+                const grid = document.getElementById('books-grid');
+                const status = document.getElementById('status-msg');
+
+                if (books.length === 0)
+                {
+                    status.innerText = "The library is currently empty.";
+                    return;
+                }
+
+                status.style.display = 'none';
+
+                grid.innerHTML = books.map(book => `
+                    <div class="data-card">
+                        <div class="book-title">${book.title}</div>
+                        <div class="book-author">By ${book.authorName || 'Unknown Author'}</div>
+                        <div class="genre-badge">${book.genre || 'General'}</div>
+                    </div>
+                `).join('');
+
+            } catch (error)
+            {
+                document.getElementById('status-msg').innerText = "Could not connect to Book API.";
+                console.error(error);
+            }
+        }
+
+        fetchBooks();
+    </script>
+</body>
+
+</html>

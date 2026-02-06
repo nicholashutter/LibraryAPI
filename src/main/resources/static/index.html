@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library API Demo</title>
+    <style>
+        /* Web-safe Material Font Stack */
+        body {
+            font-family: "Roboto", "Segoe UI", Tahoma, sans-serif;
+            background-color: #eeeeee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        /* Material Surface (The Card) */
+        .demo-card {
+            background: white;
+            width: 350px;
+            padding: 2.5rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+        }
+
+        h3 {
+            margin-top: 0;
+            font-weight: 500;
+            color: #1976d2;
+        }
+
+        p {
+            color: #666;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        /* Material Button Styling */
+        .btn-custom {
+            display: block;
+            margin: 12px auto;
+            width: 90%;
+            padding: 12px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Primary Button (Blue) */
+        .btn-primary {
+            background-color: #1976d2;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1565c0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Secondary Button (Grey/Dark) */
+        .btn-secondary {
+            background-color: #424242;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #333333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer-text {
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="demo-card">
+        <h3>Library Demo API</h3>
+        <p>Select a category to explore the data.</p>
+
+        <a href="authorsMenu.html" class="btn-custom btn-primary">Explore Authors</a>
+        <a href="booksMenu.html" class="btn-custom btn-secondary">Explore Books</a>
+
+        <div class="footer-text">
+            Library Demo
+        </div>
+    </div>
+
+</body>
+
+</html>

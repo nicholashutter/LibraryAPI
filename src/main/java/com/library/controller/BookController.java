@@ -13,6 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.library.entities.BookDTO;
 import com.library.services.BookService;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @CrossOrigin(origins = "*")
 @RestController
 public class BookController {
@@ -26,14 +29,17 @@ public class BookController {
     }
 
     @PostMapping(BASE_PATH)
-    public boolean insertBooks(@RequestBody List<BookDTO> books) {
-        return bookService.insertBooks(books);
+    public void insertBooks(@RequestBody List<BookDTO> books) {
+
+        log.info("Received request to insert books: {}", books);
+        bookService.insertBooks(books);
     }
 
     @GetMapping(BASE_PATH)
     @ResponseStatus(HttpStatus.CREATED)
     List<BookDTO> getAllBooks() {
         // get all matching entries
+        log.info("Received request to get all books");
         return bookService.getAllBooks();
     }
 

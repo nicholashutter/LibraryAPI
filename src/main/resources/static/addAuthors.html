@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Author - Library API</title>
+    <style>
+        body {
+            font-family: "Roboto", "Segoe UI", Tahoma, sans-serif;
+            background-color: #eeeeee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+
+        .form-card {
+            background: white;
+            width: 380px;
+            padding: 2.5rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-weight: 500;
+            color: #2e7d32;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            /* Crucial for padding */
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+        }
+
+        .btn-submit {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 500;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 1rem;
+        }
+
+        .btn-submit:hover {
+            background-color: #1b5e20;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: #757575;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-card">
+        <h2>Add New Author</h2>
+
+        <form id="authorForm">
+            <div class="form-group">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" required placeholder="e.g. Jane">
+            </div>
+
+            <div class="form-group">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" required placeholder="e.g. Austen">
+            </div>
+
+            <div class="form-group">
+                <label for="bookTitles">Books (comma separated)</label>
+                <input type="text" id="bookTitles" placeholder="e.g. Emma, Persuasion">
+            </div>
+
+            <button type="submit" class="btn-submit">Save Author</button>
+        </form>
+
+        <div id="message"></div>
+
+        <a href="authorsMenu.html" class="back-link">← Back to Authors Menu</a>
+    </div>
+
+    <script>
+        const API_URL = '/authors';
+
+        // Helper: Sanitizes string by removing < > / \ and other script-like characters
+        // Only allows Alphanumeric, spaces, dots, hyphens, and commas
+        const sanitize = (str) =>
+        {
+            if (typeof str !== 'string') return "";
+            return str.replace(/[^a-zA-Z0-9\s.,-]/g, "").trim();
+        };
+
+        document.getElementById('authorForm').addEventListener('submit', async (e) =>
+        {
+            e.preventDefault();
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'none';
+
+            // 1. Get raw values
+            const rawFirstName = document.getElementById('firstName').value;
+            const rawLastName = document.getElementById('lastName').value;
+            const rawBooks = document.getElementById('bookTitles').value;
+
+            // 2. Validation: Ensure required fields aren't just empty spaces
+            if (!rawFirstName.trim() || !rawLastName.trim())
+            {
+                showMsg("First and Last Name are required.", "#d32f2f");
+                return;
+            }
+
+            // 3. Sanitization: Clean the strings to prevent injection
+            const authorData = {
+                firstName: sanitize(rawFirstName),
+                lastName: sanitize(rawLastName),
+                bookTitles: rawBooks
+                    ? rawBooks.split(',').map(s => sanitize(s)).filter(s => s !== "")
+                    : []
+            };
+
+            try
+            {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify([authorData]) // Sending as List
+                });
+
+                if (response.ok)
+                {
+                    showMsg("Author saved successfully!", "#2e7d32");
+                    document.getElementById('authorForm').reset();
+                } else
+                {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'Server error');
+                }
+            } catch (error)
+            {
+                showMsg("Error: " + error.message, "#d32f2f");
+            }
+        });
+
+        function showMsg(text, color)
+        {
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'block';
+            messageDiv.style.color = color;
+            messageDiv.innerText = text;
+        }
+    </script>
+</body>
+
+</html>

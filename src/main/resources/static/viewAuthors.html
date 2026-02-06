@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Authors - Library API</title>
+    <style>
+        body {
+            font-family: "Roboto", "Segoe UI", Tahoma, sans-serif;
+            background-color: #eeeeee;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h2 {
+            margin: 0;
+            font-weight: 500;
+            color: #1976d2;
+        }
+
+        /* The Grid for Data Cards */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* Individual Data Card */
+        .data-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .data-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .author-name {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .author-info {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: #1976d2;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        /* Loading/Error States */
+        #status-msg {
+            margin-top: 50px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h2>Authors List</h2>
+        <a href="authorsMenu.html" class="back-btn">← Back to Menu</a>
+    </header>
+
+    <div id="status-msg">Fetching authors...</div>
+
+    <div class="grid-container" id="authors-grid">
+    </div>
+
+    <script>
+        // Adjust this URL to match your Spring Boot @GetMapping path
+        const API_URL = '/authors';
+
+        async function fetchAuthors()
+        {
+            try
+            {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Failed to fetch');
+
+                const authors = await response.json();
+                const grid = document.getElementById('authors-grid');
+                const status = document.getElementById('status-msg');
+
+                if (authors.length === 0)
+                {
+                    status.innerText = "No authors found in the database.";
+                    return;
+                }
+
+                status.style.display = 'none'; // Hide loading text
+
+                grid.innerHTML = authors.map(author => `
+                <div class="data-card">
+                <div class="author-name">${author.firstName} ${author.lastName}</div>
+        
+                <div class="author-info">
+                    <strong>Books:</strong> 
+                    ${author.bookTitles && author.bookTitles.length > 0
+                        ? author.bookTitles.join(', ')
+                        : 'No titles listed'}
+                </div>
+                </div>
+                `).join('');
+
+            } catch (error)
+            {
+                document.getElementById('status-msg').innerText = "Error loading authors. Check if the API is running.";
+                console.error(error);
+            }
+        }
+
+        // Run on page load
+        fetchAuthors();
+    </script>
+</body>
+
+</html>

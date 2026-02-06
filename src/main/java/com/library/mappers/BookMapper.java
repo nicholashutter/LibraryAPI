@@ -1,4 +1,4 @@
-package com.library.services.mappers;
+package com.library.mappers;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -90,6 +90,7 @@ public class BookMapper {
         Book validatedBook = new Book();
 
         if (book.getAuthor() == null) {
+
             log.info("Book with ID {} has no author. Assigning default author.", book.getId());
 
             Author author = new Author();
