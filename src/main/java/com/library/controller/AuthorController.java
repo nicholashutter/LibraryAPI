@@ -2,10 +2,12 @@ package com.library.controller;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.library.entities.Author;
@@ -33,8 +35,8 @@ public class AuthorController {
 
     //
     @PostMapping(BASE_PATH)
-    public boolean insertAuthors(@RequestBody List<Author> authors) {
-
+    @ResponseStatus(HttpStatus.CREATED)
+    public boolean insertAuthors(@RequestBody List<AuthorDTO> authors) {
         return authorService.insertAuthors(authors);
 
     }

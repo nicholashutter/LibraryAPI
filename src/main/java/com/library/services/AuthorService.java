@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
-import com.library.entities.Author;
 import com.library.entities.AuthorDTO;
 import com.library.persistence.AuthorRepository;
 import com.library.services.mappers.AuthorMapper;
@@ -22,8 +21,8 @@ public class AuthorService {
         return authorRepository.findAll().stream().map(AuthorMapper::toDTO).toList();
     }
 
-    public boolean insertAuthors(List<Author> authors) {
-        authors.stream().forEach(author -> authorRepository.save(author));
+    public boolean insertAuthors(List<AuthorDTO> authors) {
+        authors.stream().map(AuthorMapper::toAuthor).forEach(author -> authorRepository.save(author));
         return true; // we only return true for success
     }
 

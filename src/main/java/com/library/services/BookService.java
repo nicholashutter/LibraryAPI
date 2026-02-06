@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import com.library.entities.BookDTO;
 import com.library.persistence.BookRepository;
-import com.library.services.mappers.BookValidator;
 import com.library.services.mappers.BookMapper;
 
 @Service
@@ -19,7 +18,7 @@ public class BookService {
     }
 
     public boolean insertBooks(List<BookDTO> books) {
-        books.stream().map(BookValidator::toBook).forEach(book -> bookRepository.save(book));
+        books.stream().map(BookMapper::toBook).forEach(book -> bookRepository.save(book));
         return true; // we only return true for success
     }
 
