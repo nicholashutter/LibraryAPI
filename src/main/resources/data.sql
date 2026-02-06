@@ -1,6 +1,10 @@
 
 --- 1. LOAD AUTHORS FIRST (Parent Table)
 
+-- THE DEFAULT AUTHOR (For books with no specified author)
+INSERT INTO author (id, first_name, last_name, created_at, updated_at)
+VALUES ('00000000-0000-0000-0000-000000000000', 'Unknown', 'Author', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
 INSERT INTO author (id, first_name, last_name, created_at, updated_at)
 VALUES ('a1111111-1111-1111-1111-111111111111', 'Jane', 'Austen', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
@@ -19,6 +23,20 @@ VALUES ('a5555555-5555-5555-5555-555555555555', 'Arthur', 'Conan Doyle', CURRENT
 
 
 --- 2. LOAD BOOKS (Child Table)
+
+-- THE NULL BOOK (Null Object Pattern)
+-- Points to the Unknown Author (0000...000)
+INSERT INTO books (id, title, isbn, publication_date, author_id, created_at, updated_at)
+VALUES (
+    '00000000-0000-0000-0000-000000000000', 
+    'Empty Book Slot', 
+    '000-0000000000', 
+    '1900-01-01', 
+    '00000000-0000-0000-0000-000000000000', 
+    CURRENT_TIMESTAMP, 
+    CURRENT_TIMESTAMP
+);
+
 INSERT INTO books (id, title, isbn, publication_date, author_id, created_at, updated_at)
 VALUES 
 (RANDOM_UUID(), 'Pride and Prejudice', '978-0141439518', '1813-01-28', 'a1111111-1111-1111-1111-111111111111', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),

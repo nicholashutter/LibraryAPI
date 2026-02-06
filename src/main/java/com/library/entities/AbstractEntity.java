@@ -1,6 +1,6 @@
 package com.library.entities;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.UUID;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -20,12 +20,12 @@ public abstract class AbstractEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false)
     @CreatedDate
-    private LocalDateTime createdAt;
+    private LocalDate createdAt;
 
     @Column
     @LastModifiedDate
-    private LocalDateTime updatedAt;
+    private LocalDate updatedAt;
 
 }
