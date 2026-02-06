@@ -1,8 +1,9 @@
 package com.library.exceptions;
 
-enum Exceptions {
+public enum Errors {
     BOOK_NOT_FOUND,
     AUTHOR_NOT_FOUND,
     INVALID_REQUEST,
-    DATABASE_ERROR
+    DATABASE_ERROR,
+    NULL_ARGUMENT,
 }

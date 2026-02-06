@@ -1,28 +1,24 @@
 
 --- 1. LOAD AUTHORS FIRST (Parent Table)
---- Author: Jane Austen
+
 INSERT INTO author (id, first_name, last_name, created_at, updated_at)
 VALUES ('a1111111-1111-1111-1111-111111111111', 'Jane', 'Austen', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
---- Author: Herman Melville
+
 INSERT INTO author (id, first_name, last_name, created_at, updated_at)
 VALUES ('a2222222-2222-2222-2222-222222222222', 'Herman', 'Melville', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
---- Author: Mary Shelley
 INSERT INTO author (id, first_name, last_name, created_at, updated_at)
 VALUES ('a3333333-3333-3333-3333-333333333333', 'Mary', 'Shelley', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
---- Author: Bram Stoker
 INSERT INTO author (id, first_name, last_name, created_at, updated_at)
 VALUES ('a4444444-4444-4444-4444-444444444444', 'Bram', 'Stoker', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
---- Author: Arthur Conan Doyle
 INSERT INTO author (id, first_name, last_name, created_at, updated_at)
 VALUES ('a5555555-5555-5555-5555-555555555555', 'Arthur', 'Conan Doyle', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 
 --- 2. LOAD BOOKS (Child Table)
---- Note: Column names follow Hibernate's default snake_case naming (author_id, publication_date)
 INSERT INTO books (id, title, isbn, publication_date, author_id, created_at, updated_at)
 VALUES 
 (RANDOM_UUID(), 'Pride and Prejudice', '978-0141439518', '1813-01-28', 'a1111111-1111-1111-1111-111111111111', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
