@@ -6,7 +6,10 @@ import org.springframework.stereotype.Service;
 
 import com.library.entities.AuthorDTO;
 import com.library.mappers.AuthorMapper;
+
 import com.library.persistence.AuthorRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class AuthorService {
@@ -26,6 +29,33 @@ public class AuthorService {
     public boolean insertAuthors(List<AuthorDTO> authors) {
         // convert each AuthorDTO to Author entity and save to repository
         authors.stream().map(AuthorMapper::toAuthor).forEach(author -> authorRepository.save(author));
+        return true;
+    }
+
+    @Transactional
+    public int deleteByAuthorName(String firstname, String lastname) {
+        int rowsAffected = authorRepository.deleteByFirstNameAndLastName(firstname, lastname);
+        return rowsAffected;
+    }
+
+    public AuthorDTO getByAuthorName(String firstname, String lastname) {
+        var author = authorRepository.findByFirstNameAndLastName(firstname, lastname);
+        return AuthorMapper.toDTO(author);
+    }
+
+    @Transactional
+    public boolean updateAuthor(AuthorDTO authorDTO) {
+
+        var author = authorRepository.findByFirstNameAndLastName(authorDTO.firstName(),
+                authorDTO.lastName());
+
+        if (author != null) {
+
+            author = AuthorMapper.updateFromDTO(authorDTO, author);
+
+            authorRepository.save(author);
+
+        }
         return true;
     }
 

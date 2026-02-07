@@ -4,8 +4,10 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,6 +46,20 @@ public class AuthorController {
         log.info("Received request to insert authors: {}", authors);
         authorService.insertAuthors(authors);
 
+    }
+
+    @PutMapping(BASE_PATH)
+    @ResponseStatus(HttpStatus.OK)
+    public void updateAuthor(@RequestBody AuthorDTO author) {
+        log.info("Received request to update author: {}", author);
+        authorService.updateAuthor(author);
+    }
+
+    @DeleteMapping(BASE_PATH)
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteAuthor(@RequestBody AuthorDTO author) {
+        log.info("Received request to delete author: {}", author);
+        authorService.deleteByAuthorName(author.firstName(), author.lastName());
     }
 
 }

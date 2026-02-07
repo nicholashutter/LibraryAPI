@@ -1,6 +1,8 @@
 package com.library.mappers;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,13 +14,17 @@ import com.library.entities.Book;
 import com.library.exceptions.ApplicationException;
 import com.library.exceptions.Errors;
 
+import com.library.entities.factories.*;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
 public class AuthorMapper {
 
-    final static UUID DEFAULT_ID = new UUID(0L, 0L);
+        final static UUID DEFAULT_ID = new UUID(0L, 0L);
+        final static String DEFAULT_ISBN = "000-0-00-000000-0";
+        final static LocalDate DEFAULT_PUBLICATION_DATE = LocalDate.of(1900, 1, 1);
 
     public static AuthorDTO toDTO(Author author) {
 
@@ -41,23 +47,14 @@ public class AuthorMapper {
     }
 
     public static Author toAuthor(AuthorDTO authorDTO) {
-        Author author = new Author();
+        Author author = AuthorFactory.createAuthor(authorDTO.firstName(), authorDTO.lastName(), new ArrayList<>(), LocalDate.now(),
+                LocalDate.now());
 
-        author.setId(AuthorMapper.DEFAULT_ID);
-        author.setFirstName(authorDTO.firstName());
-        author.setLastName(authorDTO.lastName());
-        author.setCreatedAt(LocalDate.now());
-        author.setUpdatedAt(LocalDate.now());
+        Book defaultBook = BookFactory.createDefaultBook(author);
 
-        Book defaultBook = new Book();
-        defaultBook.setId(DEFAULT_ID);
-        defaultBook.setTitle("Unknown Title");
-        defaultBook.setIsbn("000-0-00-000000-0");
-        defaultBook.setPublicationDate(LocalDate.of(1900, 1, 1));
-        defaultBook.setCreatedAt(LocalDate.now());
-        defaultBook.setUpdatedAt(LocalDate.now());
+        List<Book> books = new ArrayList<>();
 
-        List<Book> books = List.of(defaultBook);
+        books.add(defaultBook);
 
         if (author.getBooks() == null || author.getBooks().isEmpty()) {
             author.setBooks(books);
@@ -68,9 +65,45 @@ public class AuthorMapper {
 
             author.setBooks(books);
 
-            
         }
         return author;
     }
 
+    public static Author updateFromDTO(AuthorDTO dto, Author author) {
+        if (dto == null || author == null)
+            return author;
+
+        if (dto.firstName() != null && !dto.firstName().equals(author.getFirstName())) {
+            author.setFirstName(dto.firstName());
+        }
+
+        if (dto.lastName() != null && !dto.lastName().equals(author.getLastName())) {
+            author.setLastName(dto.lastName());
+        }
+
+        if (dto.bookTitles() != null) {
+            updateBooksFromTitles(dto.bookTitles(), author);
+        }
+
+        author.setUpdatedAt(LocalDate.now());
+        author.setCreatedAt(LocalDate.now());
+
+        return author;
+    }
+
+    private static void updateBooksFromTitles(String[] titles, Author author) {
+        List<Book> existingBooks = author.getBooks();
+        if (existingBooks == null) {
+            existingBooks = new ArrayList<>();
+            author.setBooks(existingBooks);
+        }
+
+        existingBooks.clear();
+        for (String title : titles) {
+            Book book = BookFactory.createBook(title, author, DEFAULT_ISBN, DEFAULT_PUBLICATION_DATE, 
+                LocalDate.now(), LocalDate.now());
+            
+            existingBooks.add(book);
+        }
+    }
 }

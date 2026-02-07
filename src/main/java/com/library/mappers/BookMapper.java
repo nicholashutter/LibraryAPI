@@ -1,6 +1,7 @@
 package com.library.mappers;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -11,6 +12,8 @@ import com.library.entities.Book;
 import com.library.entities.BookDTO;
 import com.library.exceptions.ApplicationException;
 import com.library.exceptions.Errors;
+
+import com.library.entities.factories.*;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,62 +52,42 @@ public class BookMapper {
 
     public static Book toBook(BookDTO bookDTO) {
 
-        Book book = new Book();
+        Author author = AuthorFactory.createDefaultAuthor();
+
+        Book book = BookFactory.createDefaultBook(author);
 
         if (bookDTO.authorName() == null) {
 
             log.info("Book with ID {} has no author. Assigning default author.");
 
-            Author author = new Author();
-            author.setId(BookMapper.DEFAULT_ID);
-            author.setFirstName("Unknown");
-            author.setLastName("Author");
+            Book defaultBook = BookFactory.createDefaultBook(author);
 
-            Book defaultBook = new Book();
-            defaultBook.setId(DEFAULT_ID);
-            defaultBook.setTitle("Unknown Title");
-            defaultBook.setIsbn("000-0-00-000000-0");
-            defaultBook.setPublicationDate(LocalDate.of(1900, 1, 1));
-            defaultBook.setCreatedAt(LocalDate.now());
-            defaultBook.setUpdatedAt(LocalDate.now());
+            List<Book> books = new ArrayList<>();
 
-            List<Book> books = List.of(defaultBook);
+            books.add(defaultBook);
 
             author.setBooks(books);
 
-            book.setAuthor(author);
-
         }
 
-        book.setTitle(bookDTO.title());
-        book.setIsbn(bookDTO.isbn());
-        book.setPublicationDate(LocalDate.parse(bookDTO.publicationDate()));
-        book.setCreatedAt(LocalDate.now());
-        book.setUpdatedAt(LocalDate.now());
+        book = BookFactory.createBook(bookDTO.title(), author, bookDTO.isbn(), LocalDate.parse(bookDTO.publicationDate()), 
+        LocalDate.now(), LocalDate.now());
 
         return book;
     }
 
     public static Book validateBook(Book book) {
 
-        Book validatedBook = new Book();
+        Author author = AuthorFactory.createDefaultAuthor();
 
         if (book.getAuthor() == null) {
 
             log.info("Book with ID {} has no author. Assigning default author.", book.getId());
 
-            Author author = new Author();
-            author.setId(BookMapper.DEFAULT_ID);
-            author.setFirstName("Unknown");
-            author.setLastName("Author");
-
-            Book defaultBook = new Book();
-            defaultBook.setId(BookMapper.DEFAULT_ID);
-
-            author.setBooks(List.of(defaultBook));
             book.setAuthor(author);
+        }
 
-            author.getBooks().stream().forEach(b -> {
+        author.getBooks().stream().forEach(b -> {
                 if (b.getId() == null) {
                     b.setId(UUID.randomUUID());
                 }
@@ -127,16 +110,6 @@ public class BookMapper {
                     b.setPublicationDate(LocalDate.of(1900, 1, 1));
                 }
             });
-        }
-        book.setTitle(book.getTitle());
-        book.setIsbn(book.getIsbn());
-
-        if (book.getPublicationDate() != null) {
-            book.setPublicationDate(LocalDate.parse(book.getPublicationDate().toString()));
-        }
-
-        book.setCreatedAt(LocalDate.now());
-        book.setUpdatedAt(LocalDate.now());
 
         return book;
     }

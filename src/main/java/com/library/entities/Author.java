@@ -2,6 +2,7 @@ package com.library.entities;
 
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -16,12 +17,12 @@ import lombok.Setter;
 @Entity
 @Table(name = "author")
 public class Author extends AbstractEntity {
-    
+
     String firstName;
 
     String lastName;
 
-    @OneToMany(mappedBy = "author")
-    private List<Book> books; 
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Book> books;
 
 }
