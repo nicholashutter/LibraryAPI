@@ -8,12 +8,16 @@ import org.springframework.stereotype.Service;
 import com.library.entities.Author;
 import com.library.entities.BookDTO;
 import com.library.entities.factories.AuthorFactory;
+import com.library.exceptions.ApplicationException;
+import com.library.exceptions.Errors;
 import com.library.mappers.BookMapper;
 import com.library.persistence.AuthorRepository;
 import com.library.persistence.BookRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class BookService {
 
@@ -75,7 +79,15 @@ public class BookService {
             if (bookDTO.authorName() != null) {
                 Author author = AuthorFactory.createAuthor(bookDTO.authorName(), "", List.of(book), LocalDate.now(), LocalDate.now());
                 
-                authorRepository.save(author);
+                try {
+                    authorRepository.save(author);
+                }
+                catch (Exception ex)
+                {
+                    log.error(Errors.DATABASE_ERROR + ex.getMessage());
+                    return false;
+                }
+                
                 
                 book.setAuthor(author);
             }
@@ -84,7 +96,15 @@ public class BookService {
             return false;
         }
 
-        bookRepository.save(book);
+        try
+        {
+            bookRepository.save(book);
+        }
+        catch (Exception ex)
+        {
+            log.error(Errors.DATABASE_ERROR + ex.getMessage());
+            return false;
+        }
         return true;
     }
 }

@@ -95,53 +95,114 @@
 
     <div class="grid-container" id="authors-grid">
     </div>
-
     <script>
-        // Adjust this URL to match your Spring Boot @GetMapping path
-        const API_URL = '/authors';
+    const API_URL = '/authors';
 
-        async function fetchAuthors()
-        {
-            try
-            {
-                const response = await fetch(API_URL);
-                if (!response.ok) throw new Error('Failed to fetch');
+    async function fetchAuthors() {
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error('Failed to fetch');
 
-                const authors = await response.json();
-                const grid = document.getElementById('authors-grid');
-                const status = document.getElementById('status-msg');
+            const authors = await response.json();
+            const status = document.getElementById('status-msg');
 
-                if (authors.length === 0)
-                {
-                    status.innerText = "No authors found in the database.";
-                    return;
-                }
-
-                status.style.display = 'none'; // Hide loading text
-
-                grid.innerHTML = authors.map(author => `
-                <div class="data-card">
-                <div class="author-name">${author.firstName} ${author.lastName}</div>
-        
-                <div class="author-info">
-                    <strong>Books:</strong> 
-                    ${author.bookTitles && author.bookTitles.length > 0
-                        ? author.bookTitles.join(', ')
-                        : 'No titles listed'}
-                </div>
-                </div>
-                `).join('');
-
-            } catch (error)
-            {
-                document.getElementById('status-msg').innerText = "Error loading authors. Check if the API is running.";
-                console.error(error);
+            if (authors.length === 0) {
+                status.innerText = "No authors found in the database.";
+                return;
             }
-        }
 
-        // Run on page load
-        fetchAuthors();
-    </script>
+            status.style.display = 'none';
+            renderAuthors(authors);
+        } catch (error) {
+            document.getElementById('status-msg').innerText = "Error loading authors.";
+            console.error(error);
+        }
+    }
+
+    function renderAuthors(authors) {
+        const grid = document.getElementById('authors-grid');
+        grid.innerHTML = authors.map(author => {
+            const titlesStr = (author.bookTitles || []).join(', ');
+            // Using author.isbn as the unique identifier for the HTML ID
+            const key = author.isbn; 
+
+            return `
+            <div class="data-card" id="card-${key}">
+                <div class="view-mode">
+                    <div class="author-name">${author.firstName} ${author.lastName}</div>
+                    <div class="author-info">
+                        <strong>ISBN:</strong> ${author.isbn}<br>
+                        <strong>Books:</strong> ${titlesStr || 'No titles listed'}
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button onclick="enterEditMode('${key}', '${author.firstName}', '${author.lastName}', '${titlesStr}')" 
+                                style="cursor:pointer; background:#1976d2; color:white; border:none; padding:5px 12px; border-radius:4px; font-size:0.75rem;">
+                            EDIT AUTHOR
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        }).join('');
+    }
+
+    function enterEditMode(isbn, first, last, titles) {
+        const card = document.getElementById(`card-${isbn}`);
+        card.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <label style="font-size: 0.7rem; color: #666;">First Name</label>
+            <input type="text" id="edit-first-${isbn}" value="${first}" style="padding:6px; border:1px solid #ccc; border-radius:4px;">
+            
+            <label style="font-size: 0.7rem; color: #666;">Last Name</label>
+            <input type="text" id="edit-last-${isbn}" value="${last}" style="padding:6px; border:1px solid #ccc; border-radius:4px;">
+            
+            <label style="font-size: 0.7rem; color: #666;">Books (comma separated)</label>
+            <input type="text" id="edit-books-${isbn}" value="${titles}" style="padding:6px; border:1px solid #ccc; border-radius:4px;">
+            
+            <div style="margin-top:10px; display:flex; gap:10px;">
+                <button onclick="saveAuthor('${isbn}')" style="background:#4caf50; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; font-weight:bold;">SAVE</button>
+                <button onclick="fetchAuthors()" style="background:#f44336; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">CANCEL</button>
+            </div>
+        </div>
+    `;
+    }
+
+    async function saveAuthor(isbn) {
+        const bookTitlesArray = document.getElementById(`edit-books-${isbn}`).value
+            .split(',')
+            .map(t => t.trim())
+            .filter(t => t !== "");
+
+        // No 'id' field here, just the data + ISBN for validation
+        const payload = {
+            isbn: isbn,
+            firstName: document.getElementById(`edit-first-${isbn}`).value,
+            lastName: document.getElementById(`edit-last-${isbn}`).value,
+            bookTitles: bookTitlesArray
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                alert("Author updated successfully!");
+                fetchAuthors();
+            } else {
+                const text = await response.text();
+                alert("Error: " + text);
+            }
+        } catch (error) {
+            console.error("Update Error:", error);
+            alert("Connection error.");
+        }
+    }
+
+    fetchAuthors();
+</script>
 </body>
 
 </html>

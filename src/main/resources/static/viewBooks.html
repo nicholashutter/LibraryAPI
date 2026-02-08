@@ -126,7 +126,6 @@
                 if (!response.ok) throw new Error('API Error');
 
                 const books = await response.json();
-                const grid = document.getElementById('books-grid');
                 const status = document.getElementById('status-msg');
 
                 if (books.length === 0)
@@ -136,14 +135,7 @@
                 }
 
                 status.style.display = 'none';
-
-                grid.innerHTML = books.map(book => `
-                    <div class="data-card">
-                        <div class="book-title">${book.title}</div>
-                        <div class="book-author">By ${book.authorName || 'Unknown Author'}</div>
-                        <div class="genre-badge">${book.genre || 'General'}</div>
-                    </div>
-                `).join('');
+                renderBooks(books);
 
             } catch (error)
             {
@@ -152,7 +144,97 @@
             }
         }
 
+        function renderBooks(books)
+        {
+            const grid = document.getElementById('books-grid');
+            grid.innerHTML = books.map(book =>
+            {
+                // We use ISBN as the unique identifier for DOM elements
+                const key = book.isbn;
+
+                return `
+            <div class="data-card" id="card-${key}">
+                <div class="view-mode">
+                    <div class="book-title">${book.title}</div>
+                    <div class="book-author">By ${book.authorName || 'Unknown'}</div>
+                    <div class="genre-badge">${key || 'No ISBN'}</div>
+                    <div style="margin-top: 15px;">
+                        <button onclick="enterEditMode('${key}', '${book.title}', '${book.authorName}', '${book.publicationDate || ''}')" 
+                                style="cursor:pointer; background:#3f51b5; color:white; border:none; padding:5px 10px; border-radius:4px; font-size:0.7rem;">
+                            EDIT
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+            }).join('');
+        }
+
+        function enterEditMode(isbn, title, author, pubDate)
+        {
+            const card = document.getElementById(`card-${isbn}`);
+            if (!card)
+            {
+                console.error("Could not find card for ISBN:", isbn);
+                return;
+            }
+
+            const viewModeDiv = card.querySelector('.view-mode');
+            viewModeDiv.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <label style="font-size:0.6rem;">Title</label>
+                <input type="text" id="edit-title-${isbn}" value="${title}" style="width:90%; padding:4px;">
+                
+                <label style="font-size:0.6rem;">Author</label>
+                <input type="text" id="edit-author-${isbn}" value="${author}" style="width:90%; padding:4px;">
+                
+                <label style="font-size:0.6rem;">Pub Date</label>
+                <input type="date" id="edit-date-${isbn}" value="${pubDate}" style="width:90%; padding:4px;">
+                
+                <div style="margin-top:10px; display:flex; gap:10px;">
+                    <button onclick="saveBook('${isbn}')" style="background:#4caf50; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">SAVE</button>
+                    <button onclick="fetchBooks()" style="background:#f44336; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">CANCEL</button>
+                </div>
+            </div>
+        `;
+        }
+
+        async function saveBook(isbn)
+        {
+            // Build payload using ISBN as the identifier
+            const payload = {
+                isbn: isbn,
+                title: document.getElementById(`edit-title-${isbn}`).value,
+                authorName: document.getElementById(`edit-author-${isbn}`).value,
+                publicationDate: document.getElementById(`edit-date-${isbn}`).value
+            };
+
+            try
+            {
+                const response = await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok)
+                {
+                    alert("Book updated successfully!");
+                    fetchBooks();
+                } else
+                {
+                    const errorText = await response.text();
+                    alert("Failed to save book: " + errorText);
+                }
+            } catch (error)
+            {
+                console.error("Save Error:", error);
+                alert("Connection error.");
+            }
+        }
+
         fetchBooks();
+    </script>
     </script>
 </body>
 

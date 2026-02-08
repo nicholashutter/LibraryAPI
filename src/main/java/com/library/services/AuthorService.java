@@ -5,12 +5,15 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.library.entities.AuthorDTO;
+import com.library.exceptions.Errors;
 import com.library.mappers.AuthorMapper;
 
 import com.library.persistence.AuthorRepository;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class AuthorService {
     private final AuthorRepository authorRepository;
@@ -53,7 +56,16 @@ public class AuthorService {
 
             author = AuthorMapper.updateFromDTO(authorDTO, author);
 
-            authorRepository.save(author);
+            try
+            {
+                authorRepository.save(author);
+            }
+            catch (Exception ex)
+            {
+                log.error(Errors.DATABASE_ERROR + ex.getMessage());
+                return false;
+            }
+            
 
         }
         return true;
