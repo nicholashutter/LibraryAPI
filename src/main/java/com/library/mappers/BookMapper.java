@@ -32,16 +32,11 @@ public class BookMapper {
                 throw new ApplicationException(Errors.NULL_ARGUMENT);
             }
 
-            String authorName = "Unknown Author";
-            if (book.getAuthor() != null) {
-                authorName = book.getAuthor().getFirstName() + " " + book.getAuthor().getLastName();
-            }
-
             dto = new BookDTO(
                     book.getTitle(),
                     book.getIsbn(),
                     book.getPublicationDate() != null ? book.getPublicationDate().toString() : null,
-                    authorName);
+                    book.getAuthor().getFirstName(), book.getAuthor().getLastName());
 
         } catch (ApplicationException ex) {
             log.error("Mapping error: {}", ex.getMessage());
@@ -56,7 +51,7 @@ public class BookMapper {
 
         Book book = BookFactory.createDefaultBook(author);
 
-        if (bookDTO.authorName() == null) {
+        if (bookDTO.firstName() == null) {
 
             log.info("Book with ID {} has no author. Assigning default author.");
 
@@ -70,8 +65,9 @@ public class BookMapper {
 
         }
 
-        book = BookFactory.createBook(bookDTO.title(), author, bookDTO.isbn(), LocalDate.parse(bookDTO.publicationDate()), 
-        LocalDate.now(), LocalDate.now());
+        book = BookFactory.createBook(bookDTO.title(), author, bookDTO.isbn(),
+                LocalDate.parse(bookDTO.publicationDate()),
+                LocalDate.now(), LocalDate.now());
 
         return book;
     }
@@ -88,29 +84,40 @@ public class BookMapper {
         }
 
         author.getBooks().stream().forEach(b -> {
-                if (b.getId() == null) {
-                    b.setId(UUID.randomUUID());
-                }
-                if (b.getCreatedAt() == null) {
-                    b.setCreatedAt(LocalDate.now());
-                }
-                if (b.getUpdatedAt() == null) {
-                    b.setUpdatedAt(LocalDate.now());
-                }
-                if (b.getAuthor() == null) {
-                    b.setAuthor(author);
-                }
-                if (b.getTitle() == null) {
-                    b.setTitle("Unknown Title");
-                }
-                if (b.getIsbn() == null) {
-                    b.setIsbn("000-0-00-000000-0");
-                }
-                if (b.getPublicationDate() == null) {
-                    b.setPublicationDate(LocalDate.of(1900, 1, 1));
-                }
-            });
+            if (b.getId() == null) {
+                b.setId(UUID.randomUUID());
+            }
+            if (b.getCreatedAt() == null) {
+                b.setCreatedAt(LocalDate.now());
+            }
+            if (b.getUpdatedAt() == null) {
+                b.setUpdatedAt(LocalDate.now());
+            }
+            if (b.getAuthor() == null) {
+                b.setAuthor(author);
+            }
+            if (b.getTitle() == null) {
+                b.setTitle("Unknown Title");
+            }
+            if (b.getIsbn() == null) {
+                b.setIsbn("000-0-00-000000-0");
+            }
+            if (b.getPublicationDate() == null) {
+                b.setPublicationDate(LocalDate.of(1900, 1, 1));
+            }
+        });
 
         return book;
     }
+
+    public static void updateBookFromDTO(BookDTO dto, Book book) {
+        if (dto.title() != null)
+            book.setTitle(dto.title());
+        if (dto.isbn() != null)
+            book.setIsbn(dto.isbn());
+        if (dto.publicationDate() != null) {
+            book.setPublicationDate(LocalDate.parse(dto.publicationDate()));
+        }
+    }
+
 }

@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.library.entities.Book;
-import com.library.entities.factories.BookFactory;
 
 public class AuthorFactory {
     public static Author createAuthor(String firstName, String lastName, List<Book> books, LocalDate createdAt,

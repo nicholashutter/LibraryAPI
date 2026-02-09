@@ -1,10 +1,16 @@
 package com.library.services;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.library.entities.Author;
 import com.library.entities.AuthorDTO;
+import com.library.entities.Book;
+import com.library.entities.factories.AuthorFactory;
+import com.library.entities.factories.BookFactory;
 import com.library.exceptions.Errors;
 import com.library.mappers.AuthorMapper;
 
@@ -24,9 +30,19 @@ public class AuthorService {
 
     public List<AuthorDTO> getAllAuthors() {
         // find all results, call toDTO conversion on each, filter out "Unknown"
-        // authors, return list
-        return authorRepository.findAll().stream().map(AuthorMapper::toDTO)
-                .filter(author -> !author.firstName().equals("Unknown")).toList();
+        Book book = BookFactory.createDefaultBook(AuthorFactory.createDefaultAuthor());
+        List<AuthorDTO> authors = new ArrayList<>();
+        authorRepository.findAll().stream().forEach(author -> {
+
+            if (!author.getFirstName().equals("Unknown")) {
+                AuthorDTO authorDTO = AuthorMapper.toDTO(author);
+                book.setAuthor(author);
+                authors.add(authorDTO);
+            }
+
+        });
+        return authors;
+
     }
 
     public boolean insertAuthors(List<AuthorDTO> authors) {
@@ -41,9 +57,14 @@ public class AuthorService {
         return rowsAffected;
     }
 
-    public AuthorDTO getByAuthorName(String firstname, String lastname) {
+    @Transactional
+    public void deleteById(UUID id) {
+        authorRepository.deleteById(id);
+    }
+
+    public UUID findIdByFirstAndLastName(String firstname, String lastname) {
         var author = authorRepository.findByFirstNameAndLastName(firstname, lastname);
-        return AuthorMapper.toDTO(author);
+        return author.getId();
     }
 
     @Transactional
@@ -56,16 +77,32 @@ public class AuthorService {
 
             author = AuthorMapper.updateFromDTO(authorDTO, author);
 
-            try
-            {
+            try {
                 authorRepository.save(author);
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 log.error(Errors.DATABASE_ERROR + ex.getMessage());
                 return false;
             }
-            
+
+        }
+        return true;
+    }
+
+    @Transactional
+    public boolean updateAuthor(UUID id, AuthorDTO authorDTO) {
+
+        var author = authorRepository.findById(id).orElse(null);
+
+        if (author != null) {
+
+            author = AuthorMapper.updateFromDTO(authorDTO, author);
+
+            try {
+                authorRepository.save(author);
+            } catch (Exception ex) {
+                log.error(Errors.DATABASE_ERROR + ex.getMessage());
+                return false;
+            }
 
         }
         return true;

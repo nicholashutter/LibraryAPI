@@ -1,15 +1,16 @@
 package com.library.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,14 +33,21 @@ public class BookController {
     }
 
     @PostMapping(BASE_PATH)
+    @ResponseStatus(HttpStatus.CREATED)
     public void insertBooks(@RequestBody List<BookDTO> books) {
 
         log.info("Received request to insert books: {}", books);
         bookService.insertBooks(books);
     }
 
+    @GetMapping(BASE_PATH + "/{isbn}")
+    public UUID findIdByISBN(@PathVariable String isbn) {
+        log.info("Received request to find book ID by ISBN: {}", isbn);
+        return bookService.findIdByisbn(isbn);
+    }
+
     @GetMapping(BASE_PATH)
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(HttpStatus.OK)
     List<BookDTO> getAllBooks() {
         // get all matching entries
         log.info("Received request to get all books");
@@ -59,6 +67,13 @@ public class BookController {
     public void updateBook(@RequestBody BookDTO bookDTO) {
         log.info("Received request to update book with title: {}", bookDTO.title());
         bookService.updateBook(bookDTO);
+    }
+
+    @PutMapping(BASE_PATH + "/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void updateBook(@PathVariable UUID id, @RequestBody BookDTO bookDTO) {
+        log.info("Received request to update book with title: {}", bookDTO.title());
+        bookService.updateBook(id, bookDTO);
     }
 
 }

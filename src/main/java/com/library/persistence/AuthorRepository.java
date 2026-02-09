@@ -12,4 +12,8 @@ public interface AuthorRepository extends JpaRepository<Author, UUID> {
 
     Author findByFirstNameAndLastName(String firstName, String lastName);
 
+    UUID findIdByFirstNameAndLastName(String firstName, String lastName);
+
+    void deleteById(UUID id);
+
 }

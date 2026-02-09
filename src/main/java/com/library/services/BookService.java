@@ -2,14 +2,15 @@ package com.library.services;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.library.entities.Author;
+import com.library.entities.Book;
 import com.library.entities.BookDTO;
 import com.library.entities.factories.AuthorFactory;
-import com.library.exceptions.ApplicationException;
-import com.library.exceptions.Errors;
 import com.library.mappers.BookMapper;
 import com.library.persistence.AuthorRepository;
 import com.library.persistence.BookRepository;
@@ -30,21 +31,38 @@ public class BookService {
         this.authorRepository = authorRepository;
     }
 
-    public boolean insertBooks(List<BookDTO> books) {
-        books.stream().map(BookMapper::toBook).forEach(book -> bookRepository.save(book));
-        return true; // we only return true for success
+    public boolean insertBooks(List<BookDTO> bookDTOs) {
+
+        bookDTOs.stream().forEach(bookDTO -> {
+            Author author = authorMarshaller(bookDTO);
+                Book book = BookMapper.toBook(bookDTO);
+                book.setAuthor(author);
+                bookRepository.save(book);
+            
+        });
+        return true; 
+    }
+
+    public UUID findIdByisbn(String isbn) {
+        Book book = bookRepository.findIdByisbn(isbn);
+        return book.getId();
     }
 
     public List<BookDTO> getAllBooks() {
         // find all, map to DTO, filter out placeholder books, return list
         return bookRepository.findAll().stream().map(BookMapper::toDTO)
-                .filter(book -> !book.isbn().equals("000-0000000000")).toList();
+                .filter(book -> !book.firstName().equals("Unknown")).toList();
     }
 
     @Transactional
     public int deleteByTitle(String title) {
         int rowsAffected = bookRepository.deleteByTitle(title);
         return rowsAffected;
+    }
+
+    @Transactional
+    public void deleteById(UUID id) {
+        bookRepository.deleteById(id);
     }
 
     public BookDTO getByTitle(String title) {
@@ -55,56 +73,53 @@ public class BookService {
     @Transactional
     public boolean updateBook(BookDTO bookDTO) {
 
-        var book = bookRepository.findByTitle(bookDTO.title());
+        var book = bookRepository.findIdByisbn(bookDTO.isbn());
 
         if (book != null) {
-
-            if (bookDTO.isbn() != null && !bookDTO.isbn().equals(book.getIsbn())) {
-                book.setIsbn(bookDTO.isbn());
-
-            }
-            if (bookDTO.publicationDate() != null) {
-                LocalDate newDate = LocalDate.parse(bookDTO.publicationDate());
-                if (!newDate.equals(book.getPublicationDate())) {
-                    book.setPublicationDate(newDate);
-
-                }
-            }
-            if (bookDTO.title() != null && !bookDTO.title().equals(book.getTitle())) {
-                book.setTitle(bookDTO.title());
-
-            }
-
-            // bad result of circular dependency 
-            if (bookDTO.authorName() != null) {
-                Author author = AuthorFactory.createAuthor(bookDTO.authorName(), "", List.of(book), LocalDate.now(), LocalDate.now());
-                
-                try {
-                    authorRepository.save(author);
-                }
-                catch (Exception ex)
-                {
-                    log.error(Errors.DATABASE_ERROR + ex.getMessage());
-                    return false;
-                }
-                
-                
-                book.setAuthor(author);
-            }
-
-        } else {
-            return false;
+            return bookMarshaller(book, bookDTO);
         }
 
-        try
-        {
-            bookRepository.save(book);
+        return false;
+    }
+
+    @Transactional
+    public boolean updateBook(UUID id, BookDTO bookDTO) {
+
+        Optional<Book> possibleBook = bookRepository.findById(id);
+
+        Book book = possibleBook.orElse(null);
+
+        if (book != null) {
+            return bookMarshaller(book, bookDTO);
         }
-        catch (Exception ex)
-        {
-            log.error(Errors.DATABASE_ERROR + ex.getMessage());
-            return false;
+
+        return false;
+    }
+
+    private boolean bookMarshaller(Book book, BookDTO bookDTO) {
+
+        BookMapper.updateBookFromDTO(bookDTO, book);
+
+        if (bookDTO.firstName() != null) {
+
+            Author author = AuthorFactory.createAuthor(bookDTO.firstName(), "_", List.of(book),
+                    LocalDate.now(), LocalDate.now());
+            authorRepository.save(author);
+            book.setAuthor(author);
         }
+
+        bookRepository.save(book);
         return true;
     }
+
+    private Author authorMarshaller(BookDTO bookDTO) {
+        Author author = AuthorFactory.createDefaultAuthor();
+        author.setFirstName(bookDTO.firstName());
+        author.setLastName(bookDTO.lastName());
+        authorRepository.save(author);
+
+        return author;
+
+    }
+
 }

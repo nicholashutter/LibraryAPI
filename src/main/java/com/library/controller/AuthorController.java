@@ -1,20 +1,25 @@
 package com.library.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.library.entities.Author;
 import com.library.entities.AuthorDTO;
 import com.library.services.AuthorService;
 
+import jakarta.websocket.server.PathParam;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -29,6 +34,12 @@ public class AuthorController {
     public AuthorController(AuthorService authorService) {
         this.authorService = authorService;
 
+    }
+
+    @GetMapping(BASE_PATH + "/{firstName}/{lastName}")
+    UUID getAuthorIdByName(@PathVariable String firstName, @PathVariable String lastName) {
+        log.info("Received request to get author by name: {} {}", firstName, lastName);
+        return authorService.findIdByFirstAndLastName(firstName, lastName);
     }
 
     @GetMapping(BASE_PATH)
@@ -53,6 +64,13 @@ public class AuthorController {
     public void updateAuthor(@RequestBody AuthorDTO author) {
         log.info("Received request to update author: {}", author);
         authorService.updateAuthor(author);
+    }
+
+    @PutMapping(BASE_PATH + "/{id}")
+    @ResponseStatus(HttpStatus.OK )
+    public void updateAuthor(@PathVariable UUID id, @RequestBody AuthorDTO author) {
+        log.info("Received request to update author: {}", author);
+        authorService.updateAuthor(id, author);
     }
 
     @DeleteMapping(BASE_PATH)

@@ -120,12 +120,15 @@
 
             <div class="form-group">
                 <label for="publicationDate">Publication Date</label>
-                <input type="text" id="publicationDate" placeholder="e.g. 1851-10-18">
+                <input type="text" id="publicationDate" placeholder="e.g. 06-02-2026">
             </div>
 
             <div class="form-group">
-                <label for="authorName">Author Name</label>
-                <input type="text" id="authorName" required placeholder="e.g. Herman Melville">
+                <label>Author First Name</label>
+                <input type="text" id="firstName" placeholder="e.g. Mary" required>
+
+                <label>Author Last Name</label>
+                <input type="text" id="lastName" placeholder="e.g. Shelley" required>
             </div>
 
             <button type="submit" class="btn-submit">Add to Catalog</button>
@@ -151,20 +154,19 @@
             return isbnRegex.test(isbn);
         };
 
-        // Validates DD-MM-YYYY format
+
         const isValidDate = (dateStr) =>
         {
             const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
             if (!dateRegex.test(dateStr)) return false;
 
-            // Basic check to see if it's a real date
             const parts = dateStr.split("-");
             const day = parseInt(parts[0], 10);
             const month = parseInt(parts[1], 10);
             return (month >= 1 && month <= 12 && day >= 1 && day <= 31);
         };
 
-        // Transforms DD-MM-YYYY to YYYY-MM-DD for Spring LocalDate
+
         const formatToISO = (dateStr) =>
         {
             const [d, m, y] = dateStr.split("-");
@@ -177,15 +179,17 @@
             const messageDiv = document.getElementById('message');
             messageDiv.style.display = 'none';
 
+            // Capturing separate fields from the form
             const rawTitle = document.getElementById('title').value;
             const rawIsbn = document.getElementById('isbn').value;
-            const rawPubDate = document.getElementById('publicationDate').value; // Expected DD-MM-YYYY
-            const rawAuthor = document.getElementById('authorName').value;
+            const rawPubDate = document.getElementById('publicationDate').value;
+            const rawFirstName = document.getElementById('firstName').value; // New ID
+            const rawLastName = document.getElementById('lastName').value;   // New ID
 
-            // Validation
-            if (!rawTitle.trim() || !rawAuthor.trim())
+            // Validation - checking both name parts now
+            if (!rawTitle.trim() || !rawFirstName.trim() || !rawLastName.trim())
             {
-                showMsg("Title and Author Name are required.", "#c62828", "#ffebee");
+                showMsg("Title and both Author names are required.", "#c62828", "#ffebee");
                 return;
             }
 
@@ -197,15 +201,17 @@
 
             if (!isValidDate(rawPubDate))
             {
-                showMsg("Invalid Date. Please use DD-MM-YYYY (e.g., 06-02-2026).", "#c62828", "#ffebee");
+                showMsg("Invalid Date. Please use DD-MM-YYYY.", "#c62828", "#ffebee");
                 return;
             }
 
+            // Creating the payload with explicit first/last name keys
             const bookData = {
                 title: sanitize(rawTitle),
                 isbn: rawIsbn.trim(),
-                publicationDate: formatToISO(rawPubDate), // Send as YYYY-MM-DD
-                authorName: sanitize(rawAuthor)
+                publicationDate: formatToISO(rawPubDate),
+                firstName: sanitize(rawFirstName),
+                lastName: sanitize(rawLastName)
             };
 
             try
@@ -220,13 +226,15 @@
                 {
                     showMsg("Book added successfully!", "#2e7d32", "#e8f5e9");
                     document.getElementById('bookForm').reset();
+                    if (typeof fetchBooks === 'function') fetchBooks();
                 } else
                 {
-                    throw new Error();
+                    const errorText = await response.text();
+                    showMsg("Server Error: " + errorText, "#c62828", "#ffebee");
                 }
             } catch (error)
             {
-                showMsg("Failed to add book. Check API connection or Date format.", "#c62828", "#ffebee");
+                showMsg("Connection error.", "#c62828", "#ffebee");
             }
         });
 

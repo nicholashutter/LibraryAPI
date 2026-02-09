@@ -47,8 +47,10 @@ public class AuthorMapper {
     }
 
     public static Author toAuthor(AuthorDTO authorDTO) {
-        Author author = AuthorFactory.createAuthor(authorDTO.firstName(), authorDTO.lastName(), new ArrayList<>(), LocalDate.now(),
-                LocalDate.now());
+        Author author = AuthorFactory.createDefaultAuthor();
+        author.setFirstName(authorDTO.firstName());
+        author.setLastName(authorDTO.lastName());
+        author.setBooks(new ArrayList<>());
 
         Book defaultBook = BookFactory.createDefaultBook(author);
 

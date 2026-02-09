@@ -5,10 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Books - Library API</title>
+
     <style>
         body {
             font-family: "Roboto", "Segoe UI", Tahoma, sans-serif;
-            background-color: #eeeeee;
+            background-color: #f4f7f6;
             margin: 0;
             padding: 20px;
             color: #333;
@@ -19,86 +20,145 @@
 
         header {
             width: 100%;
-            max-width: 800px;
-            margin-bottom: 20px;
+            max-width: 1100px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
         }
 
-        /* Books Indigo Theme */
         h2 {
             margin: 0;
+            color: #1976d2;
             font-weight: 500;
-            color: #3f51b5;
-        }
-
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
-            width: 100%;
-            max-width: 800px;
-        }
-
-        .data-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Material Accent Strip on the side */
-        .data-card::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 5px;
-            background-color: #ffb300;
-            /* Amber accent */
-        }
-
-        .book-title {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: #222;
-            margin-bottom: 5px;
-        }
-
-        .book-author {
-            font-size: 0.9rem;
-            color: #3f51b5;
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-
-        .genre-badge {
-            display: inline-block;
-            background: #f5f5f5;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #666;
         }
 
         .back-btn {
             text-decoration: none;
-            color: #3f51b5;
-            font-weight: 500;
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            color: #1976d2;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1100px;
+        }
+
+        .data-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid #eee;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .data-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Styled Book Title - Matching your Author Name style */
+        .book-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+
+        .book-author {
+            font-size: 0.95rem;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        /* Small badge for ISBN */
+        .genre-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.9rem;
+        }
+
+        label {
+            font-size: 0.75rem;
+            color: #888;
             text-transform: uppercase;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .btn-edit {
+            cursor: pointer;
+            background: #1976d2;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
             font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: background 0.3s;
+        }
+
+        .btn-edit:hover {
+            background: #1565c0;
+        }
+
+        .btn-save {
+            background: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .btn-cancel {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            flex: 1;
         }
 
         #status-msg {
             margin-top: 50px;
-            color: #666;
-            font-style: italic;
+            font-weight: bold;
+            color: #888;
         }
     </style>
 </head>
@@ -114,9 +174,13 @@
 
     <div class="grid-container" id="books-grid">
     </div>
-
     <script>
         const API_URL = '/books';
+
+        let currentBookStore = {
+            id: null,
+            originalIsbn: null
+        };
 
         async function fetchBooks()
         {
@@ -136,11 +200,26 @@
 
                 status.style.display = 'none';
                 renderBooks(books);
-
             } catch (error)
             {
                 document.getElementById('status-msg').innerText = "Could not connect to Book API.";
                 console.error(error);
+            }
+        }
+
+        async function getBookIdByIsbn(isbn)
+        {
+            try
+            {
+                const response = await fetch(`${API_URL}/${isbn}`);
+                if (!response.ok) throw new Error('Book ID lookup failed');
+
+                const data = await response.text();
+                return data.replace(/"/g, '');
+            } catch (error)
+            {
+                console.error("ID Fetch Error:", error);
+                return null;
             }
         }
 
@@ -149,77 +228,157 @@
             const grid = document.getElementById('books-grid');
             grid.innerHTML = books.map(book =>
             {
-                // We use ISBN as the unique identifier for DOM elements
                 const key = book.isbn;
 
+                // CHANGE THESE: Use the keys from your JSON response
+                const first = book.firstName || '';
+                const last = book.lastName || '';
+
+                const fullName = `${first} ${last}`.trim() || 'Unknown Author';
+
                 return `
-            <div class="data-card" id="card-${key}">
-                <div class="view-mode">
-                    <div class="book-title">${book.title}</div>
-                    <div class="book-author">By ${book.authorName || 'Unknown'}</div>
-                    <div class="genre-badge">${key || 'No ISBN'}</div>
-                    <div style="margin-top: 15px;">
-                        <button onclick="enterEditMode('${key}', '${book.title}', '${book.authorName}', '${book.publicationDate || ''}')" 
-                                style="cursor:pointer; background:#3f51b5; color:white; border:none; padding:5px 10px; border-radius:4px; font-size:0.7rem;">
-                            EDIT
-                        </button>
-                    </div>
+        <div class="data-card" id="card-${key}">
+            <div class="view-mode">
+                <div class="book-title">${book.title}</div>
+                <div class="book-author">By ${fullName}</div>
+                <div class="genre-badge">${key || 'No ISBN'}</div>
+                <div style="margin-top: 15px;">
+                    <button onclick="prepareBookEdit('${key}', '${book.title}', '${first}', '${last}', '${book.publicationDate || ''}')" 
+                            style="cursor:pointer; background:#3f51b5; color:white; border:none; padding:5px 10px; border-radius:4px; font-size:0.7rem;">
+                        EDIT
+                    </button>
                 </div>
             </div>
-        `;
+        </div>`;
             }).join('');
         }
 
-        function enterEditMode(isbn, title, author, pubDate)
+        async function prepareBookEdit(isbn, title, firstName, lastName, pubDate)
         {
-            const card = document.getElementById(`card-${isbn}`);
-            if (!card)
+            const id = await getBookIdByIsbn(isbn);
+
+            if (!id)
             {
-                console.error("Could not find card for ISBN:", isbn);
+                alert("Error: Could not retrieve the unique Database ID for this book.");
                 return;
             }
 
+            currentBookStore.id = id;
+            currentBookStore.originalIsbn = isbn;
+
+
+            enterEditMode(isbn, title, firstName, lastName, pubDate);
+        }
+
+        function enterEditMode(isbn, title, firstName, lastName, pubDate)
+        {
+            const card = document.getElementById(`card-${isbn}`);
             const viewModeDiv = card.querySelector('.view-mode');
+
             viewModeDiv.innerHTML = `
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <label style="font-size:0.6rem;">Title</label>
-                <input type="text" id="edit-title-${isbn}" value="${title}" style="width:90%; padding:4px;">
-                
-                <label style="font-size:0.6rem;">Author</label>
-                <input type="text" id="edit-author-${isbn}" value="${author}" style="width:90%; padding:4px;">
-                
-                <label style="font-size:0.6rem;">Pub Date</label>
-                <input type="date" id="edit-date-${isbn}" value="${pubDate}" style="width:90%; padding:4px;">
-                
-                <div style="margin-top:10px; display:flex; gap:10px;">
-                    <button onclick="saveBook('${isbn}')" style="background:#4caf50; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">SAVE</button>
-                    <button onclick="fetchBooks()" style="background:#f44336; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">CANCEL</button>
-                </div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="font-size:0.6rem;">Title</label>
+        <input type="text" id="edit-title-${isbn}" value="${title}" style="width:90%; padding:4px;">
+        
+        <div style="display:flex; gap:5px; width:90%;">
+            <div style="flex:1;">
+                <label style="font-size:0.6rem;">First Name</label>
+                <input type="text" id="edit-first-${isbn}" value="${firstName}" style="width:100%; padding:4px;">
             </div>
-        `;
+            <div style="flex:1;">
+                <label style="font-size:0.6rem;">Last Name</label>
+                <input type="text" id="edit-last-${isbn}" value="${lastName}" style="width:100%; padding:4px;">
+            </div>
+        </div>
+        
+        <label style="font-size:0.6rem;">Pub Date</label>
+        <input type="date" id="edit-date-${isbn}" value="${pubDate}" style="width:90%; padding:4px;">
+        
+        <div style="margin-top:10px; display:flex; gap:10px; align-items: center;">
+            <button onclick="saveBook('${isbn}')" style="background:#4caf50; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">SAVE</button>
+            <button onclick="fetchBooks()" style="background:#757575; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">CANCEL</button>
+            <button onclick="deleteBook('${isbn}')" style="background:#f44336; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; margin-left: auto;">DELETE</button>
+        </div>
+    </div>`;
+        }
+       async function deleteBook(isbn) {
+            // 1. Grab the values currently in the edit fields
+            const title = document.getElementById(`edit-title-${isbn}`).value;
+            const firstName = document.getElementById(`edit-first-${isbn}`).value;
+            const lastName = document.getElementById(`edit-last-${isbn}`).value;
+            const pubDate = document.getElementById(`edit-date-${isbn}`).value;
+
+            // 2. Build the JSON object exactly as you requested
+            const payload = {
+                title: title,
+                isbn: isbn,
+                publicationDate: pubDate,
+                firstName: firstName,
+                lastName: lastName
+            };
+
+            // Confirmation
+            const isConfirmed = confirm(`WARNING: You are about to delete "${title}". This action cannot be undone. Do you wish to proceed?`);
+            if (!isConfirmed) return;
+
+            try {
+                // 3. Send to the base '/books' route (API_URL) instead of '/books/ID'
+                // 4. Include the method, headers, and body
+                const response = await fetch(API_URL, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) {
+                    alert("Book deleted successfully.");
+                    currentBookStore.id = null;
+                    currentBookStore.originalIsbn = null;
+                    fetchBooks(); // Refresh the grid
+                } else {
+                    const errorText = await response.text();
+                    alert("Failed to delete book: " + errorText);
+                }
+            } catch (error) {
+                console.error("Delete Error:", error);
+                alert("Connection error while trying to delete.");
+            }
         }
 
         async function saveBook(isbn)
         {
-            // Build payload using ISBN as the identifier
+            if (!currentBookStore.id)
+            {
+                alert("Session Error: Missing Book ID. Please try again.");
+                return;
+            }
+
+
             const payload = {
+                id: currentBookStore.id,
                 isbn: isbn,
                 title: document.getElementById(`edit-title-${isbn}`).value,
-                authorName: document.getElementById(`edit-author-${isbn}`).value,
+                authorFirstName: document.getElementById(`edit-first-${isbn}`).value,
+                authorLastName: document.getElementById(`edit-last-${isbn}`).value,
                 publicationDate: document.getElementById(`edit-date-${isbn}`).value
             };
 
             try
             {
-                const response = await fetch(API_URL, {
+                const response = await fetch(`${API_URL}/${currentBookStore.id}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
                     body: JSON.stringify(payload)
                 });
 
                 if (response.ok)
                 {
                     alert("Book updated successfully!");
+                    currentBookStore.id = null;
                     fetchBooks();
                 } else
                 {
@@ -233,9 +392,11 @@
             }
         }
 
+
+
         fetchBooks();
     </script>
-    </script>
+
 </body>
 
 </html>
