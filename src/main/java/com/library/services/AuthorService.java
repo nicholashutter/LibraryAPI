@@ -1,16 +1,11 @@
 package com.library.services;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.library.entities.Author;
 import com.library.entities.AuthorDTO;
-import com.library.entities.Book;
-import com.library.entities.factories.AuthorFactory;
-import com.library.entities.factories.BookFactory;
 import com.library.exceptions.Errors;
 import com.library.mappers.AuthorMapper;
 
@@ -30,19 +25,9 @@ public class AuthorService {
 
     public List<AuthorDTO> getAllAuthors() {
         // find all results, call toDTO conversion on each, filter out "Unknown"
-        Book book = BookFactory.createDefaultBook(AuthorFactory.createDefaultAuthor());
-        List<AuthorDTO> authors = new ArrayList<>();
-        authorRepository.findAll().stream().forEach(author -> {
-
-            if (!author.getFirstName().equals("Unknown")) {
-                AuthorDTO authorDTO = AuthorMapper.toDTO(author);
-                book.setAuthor(author);
-                authors.add(authorDTO);
-            }
-
-        });
-        return authors;
-
+        // authors, return list
+        return authorRepository.findAll().stream().map(AuthorMapper::toDTO)
+                .filter(author -> !author.firstName().equals("Unknown")).toList();
     }
 
     public boolean insertAuthors(List<AuthorDTO> authors) {

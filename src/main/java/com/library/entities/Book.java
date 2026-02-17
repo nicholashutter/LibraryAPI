@@ -2,13 +2,14 @@ package com.library.entities;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -26,8 +27,7 @@ public class Book extends AbstractEntity {
 
     LocalDate publicationDate;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "author_id")
+    @ManyToOne(cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     Author author;
 
 }

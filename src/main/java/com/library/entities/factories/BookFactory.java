@@ -1,6 +1,7 @@
 package com.library.entities.factories;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import com.library.entities.Author;
 import com.library.entities.Book;
@@ -19,14 +20,9 @@ public class BookFactory {
     }
 
     public static Book createDefaultBook(Author author) {
-        Book book = new Book();
-        book.setTitle("Unknown Title");
-        book.setAuthor(null);
-        book.setIsbn("000-0-00-000000-0");
-        book.setPublicationDate(LocalDate.of(1900, 1, 1));
-        book.setCreatedAt(LocalDate.now());
-        book.setUpdatedAt(LocalDate.now());
-        book.setAuthor(author);
+
+        Book book = BookFactory.createBook("Unknown Title", author, "000-0-00-000000-0",
+         LocalDate.of(1900, 1, 1), LocalDate.now(), LocalDate.now());
         return book;
     }
 

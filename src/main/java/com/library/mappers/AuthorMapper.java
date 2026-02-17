@@ -50,7 +50,6 @@ public class AuthorMapper {
         Author author = AuthorFactory.createDefaultAuthor();
         author.setFirstName(authorDTO.firstName());
         author.setLastName(authorDTO.lastName());
-        author.setBooks(new ArrayList<>());
 
         Book defaultBook = BookFactory.createDefaultBook(author);
 

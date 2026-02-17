@@ -23,7 +23,7 @@ public class BookMapper {
 
     final static UUID DEFAULT_ID = new UUID(0L, 0L);
 
-    public static BookDTO toDTO(Book book) {
+    public static BookDTO toDTO(Book book, Author author) {
 
         BookDTO dto = null;
 
@@ -35,8 +35,8 @@ public class BookMapper {
             dto = new BookDTO(
                     book.getTitle(),
                     book.getIsbn(),
-                    book.getPublicationDate() != null ? book.getPublicationDate().toString() : null,
-                    book.getAuthor().getFirstName(), book.getAuthor().getLastName());
+                    book.getPublicationDate() != null ? book.getPublicationDate().toString() : null, 
+                    author.getFirstName(), author.getLastName());
 
         } catch (ApplicationException ex) {
             log.error("Mapping error: {}", ex.getMessage());
@@ -47,27 +47,14 @@ public class BookMapper {
 
     public static Book toBook(BookDTO bookDTO) {
 
-        Author author = AuthorFactory.createDefaultAuthor();
+        Author author = BookMapper.authorMarshaller(bookDTO);
 
-        Book book = BookFactory.createDefaultBook(author);
-
-        if (bookDTO.firstName() == null) {
-
-            log.info("Book with ID {} has no author. Assigning default author.");
-
-            Book defaultBook = BookFactory.createDefaultBook(author);
-
-            List<Book> books = new ArrayList<>();
-
-            books.add(defaultBook);
-
-            author.setBooks(books);
-
-        }
-
-        book = BookFactory.createBook(bookDTO.title(), author, bookDTO.isbn(),
+        Book book = BookFactory.createBook(bookDTO.title(), author, bookDTO.isbn(),
                 LocalDate.parse(bookDTO.publicationDate()),
                 LocalDate.now(), LocalDate.now());
+        List<Book> books = List.of(book);
+        author.setBooks(books);
+        book.setAuthor(author);
 
         return book;
     }
@@ -118,6 +105,17 @@ public class BookMapper {
         if (dto.publicationDate() != null) {
             book.setPublicationDate(LocalDate.parse(dto.publicationDate()));
         }
+    }
+
+    private static Author authorMarshaller(BookDTO bookDTO) {
+
+        List<Book> books = new ArrayList<>();
+        Book book = BookFactory.createDefaultBook(AuthorFactory.createDefaultAuthor());
+        books.add(book);
+        Author author = AuthorFactory.createAuthor(bookDTO.firstName(), bookDTO.lastName(), 
+        books, LocalDate.now(), LocalDate.now());
+        return author;
+
     }
 
 }

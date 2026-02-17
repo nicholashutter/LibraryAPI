@@ -1,6 +1,7 @@
 package com.library.services;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -11,6 +12,7 @@ import com.library.entities.Author;
 import com.library.entities.Book;
 import com.library.entities.BookDTO;
 import com.library.entities.factories.AuthorFactory;
+import com.library.entities.factories.BookFactory;
 import com.library.mappers.BookMapper;
 import com.library.persistence.AuthorRepository;
 import com.library.persistence.BookRepository;
@@ -34,13 +36,12 @@ public class BookService {
     public boolean insertBooks(List<BookDTO> bookDTOs) {
 
         bookDTOs.stream().forEach(bookDTO -> {
-            Author author = authorMarshaller(bookDTO);
-                Book book = BookMapper.toBook(bookDTO);
-                book.setAuthor(author);
-                bookRepository.save(book);
-            
+
+            Book book = BookMapper.toBook(bookDTO);
+            bookRepository.save(book);
+
         });
-        return true; 
+        return true;
     }
 
     public UUID findIdByisbn(String isbn) {
@@ -50,8 +51,18 @@ public class BookService {
 
     public List<BookDTO> getAllBooks() {
         // find all, map to DTO, filter out placeholder books, return list
-        return bookRepository.findAll().stream().map(BookMapper::toDTO)
-                .filter(book -> !book.firstName().equals("Unknown")).toList();
+        List<BookDTO> books = new ArrayList<>();
+
+        bookRepository.findAll().stream().forEach(book -> {
+            if (!book.getAuthor().getFirstName().equals("Unknown") &&
+                    !book.getIsbn().contains("000") &&
+                    !book.getAuthor().getLastName().equals("Book")) {
+                BookDTO dto = BookMapper.toDTO(book, book.getAuthor());
+                books.add(dto);
+            }
+        });
+
+        return books;
     }
 
     @Transactional
@@ -67,7 +78,7 @@ public class BookService {
 
     public BookDTO getByTitle(String title) {
         var book = bookRepository.findByTitle(title);
-        return BookMapper.toDTO(book);
+        return BookMapper.toDTO(book, book.getAuthor());
     }
 
     @Transactional
@@ -102,7 +113,7 @@ public class BookService {
 
         if (bookDTO.firstName() != null) {
 
-            Author author = AuthorFactory.createAuthor(bookDTO.firstName(), "_", List.of(book),
+            Author author = AuthorFactory.createAuthor(bookDTO.firstName(), bookDTO.lastName(), List.of(book),
                     LocalDate.now(), LocalDate.now());
             authorRepository.save(author);
             book.setAuthor(author);
@@ -110,16 +121,6 @@ public class BookService {
 
         bookRepository.save(book);
         return true;
-    }
-
-    private Author authorMarshaller(BookDTO bookDTO) {
-        Author author = AuthorFactory.createDefaultAuthor();
-        author.setFirstName(bookDTO.firstName());
-        author.setLastName(bookDTO.lastName());
-        authorRepository.save(author);
-
-        return author;
-
     }
 
 }

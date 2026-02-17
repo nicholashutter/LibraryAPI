@@ -5,6 +5,7 @@ import com.library.entities.Author;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.library.entities.Book;
 
@@ -21,17 +22,14 @@ public class AuthorFactory {
     }
 
     public static Author createDefaultAuthor() {
-        Author author = new Author();
-        author.setFirstName("Unknown");
-        author.setLastName("Author");
-        author.setCreatedAt(LocalDate.now());
-        author.setUpdatedAt(LocalDate.now());
-
-        Book defaultBook = BookFactory.createDefaultBook(author);
+        UUID defaultAuthorId = new UUID(0L, 0L);
 
         List<Book> books = new ArrayList<>();
 
-        books.add(defaultBook);
+        Author author = AuthorFactory.createAuthor("Unknown", "Author", books, LocalDate.now(), LocalDate.now());
+        author.setId(defaultAuthorId);
+
+        books.add(BookFactory.createDefaultBook(author));
 
         author.setBooks(books);
         return author;
