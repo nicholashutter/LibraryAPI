@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import com.library.entities.Author;
 import com.library.entities.AuthorDTO;
 import com.library.entities.Book;
+import com.library.entities.BookDTO;
 import com.library.entities.factories.AuthorFactory;
 import com.library.entities.factories.BookFactory;
 import com.library.exceptions.ApplicationException;
@@ -37,7 +38,7 @@ public class AuthorMapper {
             }
 
             dto = new AuthorDTO(author.getFirstName(), author.getLastName(),
-                    author.getBooks().stream().map(book -> book.getTitle()).toArray(size -> new String[size]));
+                    author.getBooks().stream().map(book -> BookMapper.toDTO(book, author)).toList());
 
         } catch (ApplicationException ex) {
             log.error(ex.getMessage());
@@ -56,13 +57,17 @@ public class AuthorMapper {
 
         List<Book> books = new ArrayList<>();
 
-        if (authorDTO.bookTitles().length == 0 || authorDTO.bookTitles() == null) {
+        if (authorDTO.bookTitles().isEmpty() || authorDTO.bookTitles() == null) {
             books.add(defaultBook);
 
             return author;
         } else {
-            for (String title : authorDTO.bookTitles()) {
-                Book book = BookFactory.createBook(title, author, AuthorMapper.generateIsbn(), DEFAULT_PUBLICATION_DATE,
+            for (BookDTO bookDTO : authorDTO.bookTitles()) {
+                String isbn = bookDTO.isbn();
+                if (bookDTO.isbn().isEmpty()) {
+                    isbn = AuthorMapper.generateIsbn();
+                }
+                Book book = BookFactory.createBook(bookDTO.title(), author, isbn, DEFAULT_PUBLICATION_DATE,
                         LocalDate.now(), LocalDate.now());
                 books.add(book);
 
@@ -117,7 +122,7 @@ public class AuthorMapper {
         return author;
     }
 
-    private static void updateBooksFromTitles(String[] titles, Author author) {
+    private static void updateBooksFromTitles(List<BookDTO> bookDTOs, Author author) {
         List<Book> existingBooks = author.getBooks();
         if (existingBooks == null) {
             existingBooks = new ArrayList<>();
@@ -125,8 +130,12 @@ public class AuthorMapper {
         }
 
         existingBooks.clear();
-        for (String title : titles) {
-            Book book = BookFactory.createBook(title, author, DEFAULT_ISBN, DEFAULT_PUBLICATION_DATE,
+        for (BookDTO bookDTO : bookDTOs) {
+            String isbn = DEFAULT_ISBN;
+            if (bookDTO.isbn().isEmpty()) {
+                isbn = AuthorMapper.generateIsbn();
+            }
+            Book book = BookFactory.createBook(bookDTO.title(), author, isbn, DEFAULT_PUBLICATION_DATE,
                     LocalDate.now(), LocalDate.now());
 
             existingBooks.add(book);

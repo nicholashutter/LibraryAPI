@@ -1,5 +1,7 @@
 package com.library.entities;
 
-public record AuthorDTO(String firstName, String lastName, String[] bookTitles) {
+import java.util.List;
+
+public record AuthorDTO(String firstName, String lastName, List<BookDTO> bookTitles) {
 
 }

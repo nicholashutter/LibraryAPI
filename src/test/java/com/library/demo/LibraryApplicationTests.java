@@ -1,9 +1,19 @@
 package com.library.demo;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClient;
 
 import com.library.entities.Author;
@@ -16,16 +26,6 @@ import com.library.mappers.AuthorMapper;
 import com.library.mappers.BookMapper;
 
 import jakarta.transaction.Transactional;
-
-import org.springframework.http.ResponseEntity;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = {
 		"spring.security.user.name=testuser",
@@ -180,12 +180,21 @@ class LibraryApplicationTests {
 
 	@Test
 	void shouldUpdateAuthorById() {
-		AuthorDTO knownWorkingValue = new AuthorDTO("nicholas", "hutter", new String[] { "TestOne" });
+
+		String fixedIsbn = "9780544003415";
+
+		BookDTO book = new BookDTO(
+				"The Hobbit",
+				fixedIsbn,
+				"1937-09-21",
+				"J.R.R.",
+				"Tolkien");
+
+		AuthorDTO updatedAuthor = new AuthorDTO("J.R.R.", "Tolkien", List.of(book));
 
 		ResponseEntity<Void> response = restClient.put()
-				// Jane Austen id
 				.uri(AUTHORS_ENDPOINT + "/a2222222-2222-2222-2222-222222222222")
-				.body(knownWorkingValue)
+				.body(updatedAuthor)
 				.retrieve()
 				.toBodilessEntity();
 
@@ -194,11 +203,23 @@ class LibraryApplicationTests {
 
 	@Test
 	void shouldUpdateAuthor() {
-		AuthorDTO knownWorkingValue = new AuthorDTO("Jane", "Austen", new String[] { "TestOne" });
+
+		String fixedIsbn = "9780544003415";
+
+		BookDTO firstBook = new BookDTO(
+				"Emma",
+				fixedIsbn,
+				"1815-12-23",
+				"Jane",
+				"Austen");
+
+		List<BookDTO> books = List.of(firstBook);
+
+		AuthorDTO updatedAuthor = new AuthorDTO("Jane", "Austen", books);
 
 		ResponseEntity<Void> response = restClient.put()
 				.uri(AUTHORS_ENDPOINT)
-				.body(knownWorkingValue)
+				.body(updatedAuthor)
 				.retrieve()
 				.toBodilessEntity();
 
@@ -207,15 +228,60 @@ class LibraryApplicationTests {
 
 	@Test
 	void shouldDeleteAuthor() {
-		AuthorDTO JaneAusten = new AuthorDTO("Jane", "Austen", new String[] { "Pride and Prejudice" });
+		String fixedIsbn = "9780141439518";
+		BookDTO book = new BookDTO(
+				"Pride and Prejudice",
+				fixedIsbn,
+				"1813-01-28",
+				"Jane",
+				"Austen");
+
+		AuthorDTO janeAusten = new AuthorDTO("Jane", "Austen", List.of(book));
 
 		ResponseEntity<Void> response = restClient.method(org.springframework.http.HttpMethod.DELETE)
 				.uri(AUTHORS_ENDPOINT)
-				.body(JaneAusten)
+				.body(janeAusten)
 				.retrieve()
 				.toBodilessEntity();
 
 		assertThat(response.getStatusCode().value()).isEqualTo(200);
+	}
+
+	@Test
+	void shouldCreateAuthorWithBooksAndVerifyPersistence() {
+		String journeyIsbn = "9781607446552";
+
+		BookDTO journeyBook = new BookDTO(
+				"Journey to the West",
+				journeyIsbn,
+				"1592-01-01",
+				"Cheng'en",
+				"Wu");
+
+		AuthorDTO newAuthorDTO = new AuthorDTO("Cheng'en", "Wu", List.of(journeyBook));
+
+		ResponseEntity<Void> postResponse = restClient.post()
+				.uri(AUTHORS_ENDPOINT)
+				.body(List.of(newAuthorDTO))
+				.retrieve()
+				.toBodilessEntity();
+
+		assertThat(postResponse.getStatusCode().value()).isEqualTo(201);
+
+		List<AuthorDTO> authors = restClient.get()
+				.uri(AUTHORS_ENDPOINT)
+				.retrieve()
+				.body(new ParameterizedTypeReference<List<AuthorDTO>>() {
+				});
+
+		AuthorDTO savedAuthor = authors.stream()
+				.filter(a -> "Wu".equals(a.lastName()))
+				.findFirst()
+				.orElseThrow(() -> new AssertionError("Author not found in database"));
+
+		assertThat(savedAuthor.bookTitles()).isNotEmpty();
+		assertThat(savedAuthor.bookTitles().get(0).isbn()).isEqualTo(journeyIsbn);
+		assertThat(savedAuthor.bookTitles().get(0).title()).isEqualTo("Journey to the West");
 	}
 
 }
