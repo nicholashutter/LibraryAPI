@@ -1,20 +1,21 @@
 package com.library.mappers;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
 
 import com.library.entities.Author;
 import com.library.entities.AuthorDTO;
 import com.library.entities.Book;
+import com.library.entities.factories.AuthorFactory;
+import com.library.entities.factories.BookFactory;
 import com.library.exceptions.ApplicationException;
 import com.library.exceptions.Errors;
-
-import com.library.entities.factories.*;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,9 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class AuthorMapper {
 
-        final static UUID DEFAULT_ID = new UUID(0L, 0L);
-        final static String DEFAULT_ISBN = "000-0-00-000000-0";
-        final static LocalDate DEFAULT_PUBLICATION_DATE = LocalDate.of(1900, 1, 1);
+    final static UUID DEFAULT_ID = new UUID(0L, 0L);
+    final static String DEFAULT_ISBN = "000-0-00-000000-0";
+    final static LocalDate DEFAULT_PUBLICATION_DATE = LocalDate.of(1900, 1, 1);
 
     public static AuthorDTO toDTO(Author author) {
 
@@ -55,19 +56,43 @@ public class AuthorMapper {
 
         List<Book> books = new ArrayList<>();
 
-        books.add(defaultBook);
+        if (authorDTO.bookTitles().length == 0 || authorDTO.bookTitles() == null) {
+            books.add(defaultBook);
 
-        if (author.getBooks() == null || author.getBooks().isEmpty()) {
-            author.setBooks(books);
+            return author;
         } else {
-            for (Book book : author.getBooks()) {
-                BookMapper.validateBook(book);
+            for (String title : authorDTO.bookTitles()) {
+                Book book = BookFactory.createBook(title, author, AuthorMapper.generateIsbn(), DEFAULT_PUBLICATION_DATE,
+                        LocalDate.now(), LocalDate.now());
+                books.add(book);
+
             }
+        }
 
-            author.setBooks(books);
+        for (Book book : author.getBooks()) {
+            BookMapper.validateBook(book);
+        }
 
+        author.setBooks(books);
+
+        for (Book book : author.getBooks()) {
+            book.setAuthor(author);
         }
         return author;
+    }
+
+    private static String generateIsbn() {
+        int[] digits = new Random().ints(12, 0, 10).toArray();
+
+        int sum = IntStream.range(0, 12)
+                .map(i -> digits[i] * (i % 2 == 0 ? 1 : 3))
+                .sum();
+
+        int checksum = (10 - (sum % 10)) % 10;
+
+        StringBuilder isbn = new StringBuilder("978"); // Common prefix
+        IntStream.range(3, 12).forEach(i -> isbn.append(digits[i]));
+        return isbn.append(checksum).toString();
     }
 
     public static Author updateFromDTO(AuthorDTO dto, Author author) {
@@ -101,9 +126,9 @@ public class AuthorMapper {
 
         existingBooks.clear();
         for (String title : titles) {
-            Book book = BookFactory.createBook(title, author, DEFAULT_ISBN, DEFAULT_PUBLICATION_DATE, 
-                LocalDate.now(), LocalDate.now());
-            
+            Book book = BookFactory.createBook(title, author, DEFAULT_ISBN, DEFAULT_PUBLICATION_DATE,
+                    LocalDate.now(), LocalDate.now());
+
             existingBooks.add(book);
         }
     }
