@@ -57,12 +57,12 @@ public class AuthorMapper {
 
         List<Book> books = new ArrayList<>();
 
-        if (authorDTO.bookTitles().isEmpty() || authorDTO.bookTitles() == null) {
+        if (authorDTO.books().isEmpty() || authorDTO.books() == null) {
             books.add(defaultBook);
 
             return author;
         } else {
-            for (BookDTO bookDTO : authorDTO.bookTitles()) {
+            for (BookDTO bookDTO : authorDTO.books()) {
                 String isbn = bookDTO.isbn();
                 if (bookDTO.isbn().isEmpty()) {
                     isbn = AuthorMapper.generateIsbn();
@@ -112,8 +112,8 @@ public class AuthorMapper {
             author.setLastName(dto.lastName());
         }
 
-        if (dto.bookTitles() != null) {
-            updateBooksFromTitles(dto.bookTitles(), author);
+        if (dto.books() != null) {
+            updateBooksFromTitles(dto.books(), author);
         }
 
         author.setUpdatedAt(LocalDate.now());

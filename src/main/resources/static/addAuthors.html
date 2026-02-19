@@ -6,59 +6,80 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Author - Library API</title>
     <style>
+        /* ... Keeping your existing styles ... */
         body {
-            font-family: "Roboto", "Segoe UI", Tahoma, sans-serif;
+            font-family: "Roboto", sans-serif;
             background-color: #eeeeee;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
             color: #333;
+            padding: 20px;
         }
 
         .form-card {
             background: white;
-            width: 380px;
-            padding: 2.5rem;
+            width: 450px;
+            padding: 2rem;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         h2 {
             margin-top: 0;
-            font-weight: 500;
             color: #2e7d32;
             text-align: center;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
         }
 
         label {
             display: block;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #666;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             font-weight: 500;
             text-transform: uppercase;
         }
 
         input {
             width: 100%;
-            padding: 10px;
+            padding: 8px;
             border: 1px solid #ccc;
             border-radius: 4px;
             box-sizing: border-box;
-            /* Crucial for padding */
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
-        input:focus {
-            outline: none;
-            border-color: #2e7d32;
-            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+        /* New Styles for Book List */
+        .book-section {
+            border-top: 2px solid #eee;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+        }
+
+        .add-book-box {
+            background: #f9f9f9;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px dashed #ccc;
+            margin-bottom: 1rem;
+        }
+
+        .btn-add-item {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 8px;
+            width: 100%;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            text-transform: uppercase;
         }
 
         .btn-submit {
@@ -70,23 +91,27 @@
             border: none;
             border-radius: 4px;
             font-weight: 500;
-            text-transform: uppercase;
             cursor: pointer;
-            transition: background 0.2s;
             margin-top: 1rem;
         }
 
-        .btn-submit:hover {
-            background-color: #1b5e20;
+        .book-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #e8f5e9;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
         }
 
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #757575;
-            text-decoration: none;
-            font-size: 0.85rem;
+        .remove-btn {
+            color: #d32f2f;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            background: none;
         }
 
         #message {
@@ -105,81 +130,136 @@
 
         <form id="authorForm">
             <div class="form-group">
-                <label for="firstName">First Name</label>
-                <input type="text" id="firstName" required placeholder="e.g. Jane">
+                <label>First Name</label>
+                <input type="text" id="firstName" required>
             </div>
-
             <div class="form-group">
-                <label for="lastName">Last Name</label>
-                <input type="text" id="lastName" required placeholder="e.g. Austen">
+                <label>Last Name</label>
+                <input type="text" id="lastName" required>
             </div>
 
-            <div class="form-group">
-                <label for="bookTitles">Books (comma separated)</label>
-                <input type="text" id="bookTitles" placeholder="e.g. Emma, Persuasion">
+            <div class="book-section">
+                <label>Add Books</label>
+                <div class="add-book-box">
+                    <input type="text" id="tempTitle" placeholder="Book Title" style="margin-bottom: 5px;">
+                    <input type="text" id="tempIsbn" placeholder="ISBN" style="margin-bottom: 5px;">
+                    <input type="date" id="tempDate" style="margin-bottom: 10px;">
+                    <button type="button" class="btn-add-item" onclick="addBookToList()">+ Add Book to List</button>
+                </div>
+                <div id="queuedBooks"></div>
             </div>
 
-            <button type="submit" class="btn-submit">Save Author</button>
+            <button type="submit" class="btn-submit">Save Author & All Books</button>
         </form>
 
         <div id="message"></div>
-
-        <a href="authorsMenu.html" class="back-link">← Back to Authors Menu</a>
+        <a href="authorsMenu.html" class="back-link">← Back</a>
     </div>
 
     <script>
         const API_URL = '/authors';
+        let booksArray = []; // To hold our Book objects
 
-        // Helper: Sanitizes string by removing < > / \ and other script-like characters
-        // Only allows Alphanumeric, spaces, dots, hyphens, and commas
         const sanitize = (str) =>
         {
             if (typeof str !== 'string') return "";
             return str.replace(/[^a-zA-Z0-9\s.,-]/g, "").trim();
         };
 
-        document.getElementById('authorForm').addEventListener('submit', async (e) =>
+        function addBookToList()
         {
-            e.preventDefault();
-            const messageDiv = document.getElementById('message');
-            messageDiv.style.display = 'none';
+            const title = document.getElementById('tempTitle').value;
+            const isbn = document.getElementById('tempIsbn').value;
+            const pubDate = document.getElementById('tempDate').value;
 
-            // 1. Get raw values
-            const rawFirstName = document.getElementById('firstName').value;
-            const rawLastName = document.getElementById('lastName').value;
-            const rawBooks = document.getElementById('bookTitles').value;
+            // We pull these now, but we will "finalise" them on submit 
+            // to ensure they match the Author fields
+            const fName = document.getElementById('firstName').value;
+            const lName = document.getElementById('lastName').value;
 
-            // 2. Validation: Ensure required fields aren't just empty spaces
-            if (!rawFirstName.trim() || !rawLastName.trim())
+            if (!title || !isbn)
             {
-                showMsg("First and Last Name are required.", "#d32f2f");
+                alert("Please enter at least a Title and ISBN");
                 return;
             }
 
-            // 3. Sanitization: Clean the strings to prevent injection
+            const bookObj = {
+                title: sanitize(title),
+                isbn: sanitize(isbn),
+                publicationDate: pubDate,
+                firstName: sanitize(fName),
+                lastName: sanitize(lName)
+            };
+
+            booksArray.push(bookObj);
+            renderBooks();
+
+            // Clear book-specific inputs only
+            document.getElementById('tempTitle').value = '';
+            document.getElementById('tempIsbn').value = '';
+            document.getElementById('tempDate').value = '';
+        }
+
+        function removeBook(index)
+        {
+            booksArray.splice(index, 1);
+            renderBooks();
+        }
+
+        function renderBooks()
+        {
+            const container = document.getElementById('queuedBooks');
+            container.innerHTML = '';
+            booksArray.forEach((book, index) =>
+            {
+                container.innerHTML += `
+                <div class="book-item">
+                    <span><strong>${book.title}</strong> (ISBN: ${book.isbn})</span>
+                    <button type="button" class="remove-btn" onclick="removeBook(${index})">✕</button>
+                </div>
+            `;
+            });
+        }
+
+        document.getElementById('authorForm').addEventListener('submit', async (e) =>
+        {
+            e.preventDefault();
+
+            const fName = sanitize(document.getElementById('firstName').value);
+            const lName = sanitize(document.getElementById('lastName').value);
+
+            // Map through books to ensure the author names match the current input values
+            const finalBooks = booksArray.map(book => ({
+                ...book,
+                firstName: fName,
+                lastName: lName
+            }));
+
             const authorData = {
-                firstName: sanitize(rawFirstName),
-                lastName: sanitize(rawLastName),
-                bookTitles: rawBooks
-                    ? rawBooks.split(',').map(s => sanitize(s)).filter(s => s !== "")
-                    : []
+                firstName: fName,
+                lastName: lName,
+                books: finalBooks // UPDATED: Changed from 'bookTitles' to 'books'
             };
 
             try
             {
+                // Note: Sending as an array [authorData] because your JSON example 
+                // showed a list of authors.
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify([authorData]) // Sending as List
+                    body: JSON.stringify([authorData])
                 });
 
                 if (response.ok)
                 {
-                    showMsg("Author saved successfully!", "#2e7d32");
+                    showMsg("Author and " + booksArray.length + " books saved!", "#2e7d32");
+                    booksArray = [];
+                    renderBooks();
                     document.getElementById('authorForm').reset();
                 } else
                 {
-                    const errorData = await response.json().catch(() => ({}));
+                    const errorData = await response.json();
                     throw new Error(errorData.message || 'Server error');
                 }
             } catch (error)

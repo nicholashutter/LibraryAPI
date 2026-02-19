@@ -279,9 +279,9 @@ class LibraryApplicationTests {
 				.findFirst()
 				.orElseThrow(() -> new AssertionError("Author not found in database"));
 
-		assertThat(savedAuthor.bookTitles()).isNotEmpty();
-		assertThat(savedAuthor.bookTitles().get(0).isbn()).isEqualTo(journeyIsbn);
-		assertThat(savedAuthor.bookTitles().get(0).title()).isEqualTo("Journey to the West");
+		assertThat(savedAuthor.books()).isNotEmpty();
+		assertThat(savedAuthor.books().get(0).isbn()).isEqualTo(journeyIsbn);
+		assertThat(savedAuthor.books().get(0).title()).isEqualTo("Journey to the West");
 	}
 
 }

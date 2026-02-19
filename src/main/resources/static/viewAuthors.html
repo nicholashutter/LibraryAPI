@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Authors - Library API</title>
     <style>
+        /* ... Styles remain the same ... */
         body {
             font-family: "Roboto", "Segoe UI", Tahoma, sans-serif;
             background-color: #f4f7f6;
@@ -45,17 +46,14 @@
             color: #1976d2;
         }
 
-        /* THE FIX: Grid Layout */
         .grid-container {
             display: grid;
-            /* Creates as many 320px columns as will fit, then grows them to fill space */
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 25px;
             width: 100%;
             max-width: 1100px;
         }
 
-        /* Card Styling */
         .data-card {
             background: white;
             border-radius: 12px;
@@ -104,7 +102,6 @@
             font-weight: bold;
             margin-top: 10px;
         }
-
 
         .btn-edit {
             cursor: pointer;
@@ -161,14 +158,14 @@
 
     <div id="status-msg">Fetching authors...</div>
 
-    <div class="grid-container" id="authors-grid">
-    </div>
+    <div class="grid-container" id="authors-grid"></div>
 
     <script>
         const API_URL = '/authors';
         let currentAuthorStore = {
             id: null,
-            currentIndex: null
+            currentIndex: null,
+            originalBooks: [] // To keep track of full book objects (ISBNs, dates)
         };
 
         async function fetchAuthors()
@@ -203,7 +200,6 @@
                 const url = `${API_URL}/${encodeURIComponent(firstName)}/${encodeURIComponent(lastName)}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Author ID not found');
-
                 const id = await response.text();
                 return id.replace(/"/g, '');
             } catch (error)
@@ -218,7 +214,8 @@
             const grid = document.getElementById('authors-grid');
             grid.innerHTML = authors.map((author, index) =>
             {
-                const titlesStr = (author.bookTitles || []).join(', ');
+                // FIXED: Map over 'books' array and join the 'title' field
+                const titlesStr = (author.books || []).map(b => b.title).join(', ');
 
                 return `
             <div class="data-card" id="card-${index}">
@@ -228,7 +225,7 @@
                         <strong>Books:</strong> ${titlesStr || 'No titles listed'}
                     </div>
                     <div style="margin-top: 15px;">
-                        <button class="btn-edit" onclick="prepareEditMode(${index}, '${author.firstName}', '${author.lastName}', '${titlesStr}')">
+                        <button class="btn-edit" onclick="prepareEditMode(${index}, '${author.firstName}', '${author.lastName}', ${JSON.stringify(author.books).replace(/"/g, '&quot;')})">
                             Edit Details
                         </button>
                     </div>
@@ -237,11 +234,9 @@
             }).join('');
         }
 
-        async function prepareEditMode(index, first, last, titles)
+        async function prepareEditMode(index, first, last, booksObj)
         {
-            // Lock in the DB ID before showing inputs
             const id = await getAuthorId(first, last);
-
             if (!id)
             {
                 alert("Could not resolve Database ID for " + first + " " + last);
@@ -250,7 +245,9 @@
 
             currentAuthorStore.id = id;
             currentAuthorStore.currentIndex = index;
+            currentAuthorStore.originalBooks = booksObj;
 
+            const titles = booksObj.map(b => b.title).join(', ');
             enterEditMode(index, first, last, titles);
         }
 
@@ -258,98 +255,50 @@
         {
             const card = document.getElementById(`card-${index}`);
             card.innerHTML = `
-    <div style="display:flex; flex-direction:column; gap:5px;">
-        <label>First Name</label>
-        <input type="text" id="edit-first-${index}" value="${first}">
-        
-        <label>Last Name</label>
-        <input type="text" id="edit-last-${index}" value="${last}">
-        
-        <label>Books (CSV)</label>
-        <input type="text" id="edit-books-${index}" value="${titles}">
-        
-        <div style="margin-top:15px; display:flex; gap:10px; flex-wrap: wrap;">
-            <button class="btn-save" onclick="saveAuthor(${index})" style="background:#4caf50; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">SAVE</button>
-            <button class="btn-cancel" onclick="fetchAuthors()" style="background:#757575; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">CANCEL</button>
-            <button class="btn-delete" onclick="deleteAuthor(${index})" style="background:#f44336; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; margin-left: auto;">DELETE</button>
-        </div>
-    </div>`;
-        }
-
-        async function deleteAuthor(index)
-        {
-            // 1. Verify we are in a valid edit session
-            if (!currentAuthorStore.id)
-            {
-                alert("Error: No Author ID found. Please cancel and try again.");
-                return;
-            }
-
-            // 2. Capture data from the input fields
-            const firstName = document.getElementById(`edit-first-${index}`).value;
-            const lastName = document.getElementById(`edit-last-${index}`).value;
-            const booksStr = document.getElementById(`edit-books-${index}`).value;
-
-            // 3. Convert the CSV string back into an array (matching your saveAuthor logic)
-            const bookTitlesArray = booksStr.split(',')
-                .map(t => t.trim())
-                .filter(t => t !== "");
-
-            // 4. Build the exact JSON payload
-            const payload = {
-                firstName: firstName,
-                lastName: lastName,
-                bookTitles: bookTitlesArray
-            };
-
-            // 5. Confirmation Dialog
-            const confirmed = confirm(`WARNING: You are about to delete "${firstName} ${lastName}". This action cannot be undone. Do you wish to proceed?`);
-            if (!confirmed) return;
-
-            try
-            {
-                // 6. Send DELETE request with Headers and Body
-                const response = await fetch(API_URL, {
-                    method: 'DELETE',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                if (response.ok)
-                {
-                    alert("Author deleted successfully.");
-                    currentAuthorStore.id = null;
-                    currentAuthorStore.currentIndex = null;
-                    fetchAuthors(); // Refresh the list
-                } else
-                {
-                    const errorText = await response.text();
-                    alert("Delete failed: " + errorText);
-                }
-            } catch (error)
-            {
-                console.error("Delete Error:", error);
-                alert("Connection error while attempting to delete.");
-            }
+            <div style="display:flex; flex-direction:column; gap:5px;">
+                <label>First Name</label>
+                <input type="text" id="edit-first-${index}" value="${first}">
+                
+                <label>Last Name</label>
+                <input type="text" id="edit-last-${index}" value="${last}">
+                
+                <label>Book Titles (CSV)</label>
+                <input type="text" id="edit-books-${index}" value="${titles}">
+                
+                <div style="margin-top:15px; display:flex; gap:10px; flex-wrap: wrap;">
+                    <button class="btn-save" onclick="saveAuthor(${index})">SAVE</button>
+                    <button class="btn-cancel" onclick="fetchAuthors()">CANCEL</button>
+                    <button class="btn-delete" onclick="deleteAuthor(${index})" style="background:#f44336; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; margin-left: auto;">DELETE</button>
+                </div>
+            </div>`;
         }
 
         async function saveAuthor(index)
         {
             const newFirst = document.getElementById(`edit-first-${index}`).value;
             const newLast = document.getElementById(`edit-last-${index}`).value;
-            const newBooks = document.getElementById(`edit-books-${index}`).value;
+            const newTitlesStr = document.getElementById(`edit-books-${index}`).value;
 
+            const newTitlesArray = newTitlesStr.split(',').map(t => t.trim()).filter(t => t !== "");
 
-            const bookTitlesArray = newBooks.split(',')
-                .map(t => t.trim())
-                .filter(t => t !== "");
+            // RECONSTRUCT the books array using existing metadata (ISBNs) where possible
+            // If titles were added/removed via CSV, this logic handles a basic sync
+            const finalBooks = newTitlesArray.map(title =>
+            {
+                const existing = currentAuthorStore.originalBooks.find(b => b.title === title);
+                return {
+                    title: title,
+                    isbn: existing ? existing.isbn : "",
+                    publicationDate: existing ? existing.publicationDate : null,
+                    firstName: newFirst,
+                    lastName: newLast
+                };
+            });
 
             const payload = {
                 firstName: newFirst,
                 lastName: newLast,
-                bookTitles: bookTitlesArray
+                books: finalBooks // FIXED: Sending 'books' key
             };
 
             try
@@ -363,18 +312,46 @@
                 if (response.ok)
                 {
                     alert("Author updated successfully!");
-                    currentAuthorStore.id = null;
-                    currentAuthorStore.currentIndex = null;
                     fetchAuthors();
                 } else
                 {
-                    const text = await response.text();
-                    alert("Update failed: " + text);
+                    alert("Update failed.");
                 }
             } catch (error)
             {
-                console.error("Update Error:", error);
-                alert("Connection error.");
+                console.error(error);
+            }
+        }
+
+        async function deleteAuthor(index)
+        {
+            const first = document.getElementById(`edit-first-${index}`).value;
+            const last = document.getElementById(`edit-last-${index}`).value;
+
+            if (!confirm(`Delete ${first} ${last}?`)) return;
+
+            const payload = {
+                firstName: first,
+                lastName: last,
+                books: currentAuthorStore.originalBooks // FIXED: Sending 'books' key
+            };
+
+            try
+            {
+                const response = await fetch(API_URL, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok)
+                {
+                    alert("Deleted.");
+                    fetchAuthors();
+                }
+            } catch (error)
+            {
+                console.error(error);
             }
         }
 
