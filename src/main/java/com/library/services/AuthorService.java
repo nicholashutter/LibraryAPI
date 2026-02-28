@@ -42,10 +42,6 @@ public class AuthorService {
         return rowsAffected;
     }
 
-    @Transactional
-    public void deleteById(UUID id) {
-        authorRepository.deleteById(id);
-    }
 
     public UUID findIdByFirstAndLastName(String firstname, String lastname) {
         var author = authorRepository.findByFirstNameAndLastName(firstname, lastname);

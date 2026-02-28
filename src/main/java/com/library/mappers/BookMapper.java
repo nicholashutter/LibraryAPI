@@ -21,7 +21,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class BookMapper {
 
-    final static UUID DEFAULT_ID = new UUID(0L, 0L);
 
     public static BookDTO toDTO(Book book, Author author) {
 

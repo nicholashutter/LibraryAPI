@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.UUID;
 import java.util.stream.IntStream;
 
 import org.springframework.stereotype.Component;
@@ -24,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class AuthorMapper {
 
-    final static UUID DEFAULT_ID = new UUID(0L, 0L);
     final static String DEFAULT_ISBN = "000-0-00-000000-0";
     final static LocalDate DEFAULT_PUBLICATION_DATE = LocalDate.of(1900, 1, 1);
 

@@ -12,7 +12,6 @@ import com.library.entities.Author;
 import com.library.entities.Book;
 import com.library.entities.BookDTO;
 import com.library.entities.factories.AuthorFactory;
-import com.library.entities.factories.BookFactory;
 import com.library.mappers.BookMapper;
 import com.library.persistence.AuthorRepository;
 import com.library.persistence.BookRepository;
@@ -71,15 +70,6 @@ public class BookService {
         return rowsAffected;
     }
 
-    @Transactional
-    public void deleteById(UUID id) {
-        bookRepository.deleteById(id);
-    }
-
-    public BookDTO getByTitle(String title) {
-        var book = bookRepository.findByTitle(title);
-        return BookMapper.toDTO(book, book.getAuthor());
-    }
 
     @Transactional
     public boolean updateBook(BookDTO bookDTO) {

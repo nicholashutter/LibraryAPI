@@ -1,0 +1,136 @@
+/* Index/Menu Page Styles */
+
+body {
+    background-color: #eeeeee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.demo-card {
+    background: white;
+    width: 350px;
+    padding: 2.5rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.container-card {
+    background: white;
+    width: 400px;
+    padding: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+h2 {
+    margin-top: 0;
+    font-weight: 500;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+p {
+    color: #666;
+    margin-bottom: 1.5rem;
+}
+
+.btn-custom,
+.btn-action {
+    display: block;
+    margin: 12px auto;
+    width: 90%;
+    padding: 14px;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #1976d2;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #1565c0;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-secondary {
+    background-color: #424242;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #333333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Authors Theme */
+.authors-theme h2 {
+    color: #1976d2;
+}
+
+.btn-view {
+    background-color: #ffffff;
+    color: #1976d2;
+    border: 1px solid #1976d2;
+}
+
+.btn-view:hover {
+    background-color: #f1f8ff;
+}
+
+.btn-add {
+    background-color: #2e7d32;
+    color: white;
+}
+
+.btn-add:hover {
+    background-color: #1b5e20;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Books Theme */
+.books-theme h2 {
+    color: #3f51b5;
+    border-bottom: 2px solid #e8eaf6;
+}
+
+.books-theme .btn-view {
+    background-color: #ffffff;
+    color: #3f51b5;
+    border: 1px solid #3f51b5;
+}
+
+.books-theme .btn-view:hover {
+    background-color: #f5f5f5;
+}
+
+.books-theme .btn-add {
+    background-color: #ffb300;
+    color: #000;
+}
+
+.books-theme .btn-add:hover {
+    background-color: #ffa000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.footer-text {
+    margin-top: 2rem;
+    font-size: 0.75rem;
+    color: #999;
+}

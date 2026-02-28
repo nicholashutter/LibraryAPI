@@ -5,99 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Book - Library API</title>
+    <link rel="stylesheet" href="css/shared.css">
+    <link rel="stylesheet" href="css/form.css">
     <style>
-        body {
-            font-family: "Roboto", "Segoe UI", Tahoma, sans-serif;
-            background-color: #eeeeee;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: #333;
-        }
-
         .form-card {
-            background: white;
-            width: 380px;
-            padding: 2.5rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             border-top: 5px solid #ffb300;
-            /* Amber accent */
-        }
-
-        h2 {
-            margin-top: 0;
-            font-weight: 500;
-            color: #3f51b5;
-            text-align: center;
-        }
-
-        .form-group {
-            margin-bottom: 1.2rem;
-        }
-
-        label {
-            display: block;
-            font-size: 0.75rem;
-            color: #666;
-            margin-bottom: 4px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 0.95rem;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #3f51b5;
-            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.1);
-        }
-
-        .btn-submit {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            background-color: #3f51b5;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-weight: 500;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 1rem;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-submit:hover {
-            background-color: #303f9f;
-        }
-
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #757575;
-            text-decoration: none;
-            font-size: 0.85rem;
-        }
-
-        #message {
-            margin-top: 15px;
-            text-align: center;
-            font-size: 0.9rem;
-            display: none;
-            padding: 10px;
-            border-radius: 4px;
         }
     </style>
 </head>
@@ -139,114 +51,9 @@
         <a href="booksMenu.html" class="back-link">← Back to Books Menu</a>
     </div>
 
-    <script>
-        const API_URL = '/books';
-
-        const sanitize = (str) =>
-        {
-            if (typeof str !== 'string') return "";
-            return str.replace(/[^a-zA-Z0-9\s.,-]/g, "").trim();
-        };
-
-        const isValidISBN = (isbn) =>
-        {
-            const isbnRegex = /^(?=(?:\D*\d){10}(?:(?:\D*\d){3})?$)[\d-]+$/;
-            return isbnRegex.test(isbn);
-        };
-
-
-        const isValidDate = (dateStr) =>
-        {
-            const dateRegex = /^\d{2}-\d{2}-\d{4}$/;
-            if (!dateRegex.test(dateStr)) return false;
-
-            const parts = dateStr.split("-");
-            const day = parseInt(parts[0], 10);
-            const month = parseInt(parts[1], 10);
-            return (month >= 1 && month <= 12 && day >= 1 && day <= 31);
-        };
-
-
-        const formatToISO = (dateStr) =>
-        {
-            const [d, m, y] = dateStr.split("-");
-            return `${y}-${m}-${d}`;
-        };
-
-        document.getElementById('bookForm').addEventListener('submit', async (e) =>
-        {
-            e.preventDefault();
-            const messageDiv = document.getElementById('message');
-            messageDiv.style.display = 'none';
-
-            // Capturing separate fields from the form
-            const rawTitle = document.getElementById('title').value;
-            const rawIsbn = document.getElementById('isbn').value;
-            const rawPubDate = document.getElementById('publicationDate').value;
-            const rawFirstName = document.getElementById('firstName').value; // New ID
-            const rawLastName = document.getElementById('lastName').value;   // New ID
-
-            // Validation - checking both name parts now
-            if (!rawTitle.trim() || !rawFirstName.trim() || !rawLastName.trim())
-            {
-                showMsg("Title and both Author names are required.", "#c62828", "#ffebee");
-                return;
-            }
-
-            if (!isValidISBN(rawIsbn))
-            {
-                showMsg("Invalid ISBN format.", "#c62828", "#ffebee");
-                return;
-            }
-
-            if (!isValidDate(rawPubDate))
-            {
-                showMsg("Invalid Date. Please use DD-MM-YYYY.", "#c62828", "#ffebee");
-                return;
-            }
-
-            // Creating the payload with explicit first/last name keys
-            const bookData = {
-                title: sanitize(rawTitle),
-                isbn: rawIsbn.trim(),
-                publicationDate: formatToISO(rawPubDate),
-                firstName: sanitize(rawFirstName),
-                lastName: sanitize(rawLastName)
-            };
-
-            try
-            {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify([bookData])
-                });
-
-                if (response.ok)
-                {
-                    showMsg("Book added successfully!", "#2e7d32", "#e8f5e9");
-                    document.getElementById('bookForm').reset();
-                    if (typeof fetchBooks === 'function') fetchBooks();
-                } else
-                {
-                    const errorText = await response.text();
-                    showMsg("Server Error: " + errorText, "#c62828", "#ffebee");
-                }
-            } catch (error)
-            {
-                showMsg("Connection error.", "#c62828", "#ffebee");
-            }
-        });
-
-        function showMsg(text, textColor, bgColor)
-        {
-            const messageDiv = document.getElementById('message');
-            messageDiv.style.display = 'block';
-            messageDiv.style.color = textColor;
-            messageDiv.style.backgroundColor = bgColor;
-            messageDiv.innerText = text;
-        }
-    </script>
+    <script src="js/utility.js"></script>
+    <script src="js/api-client.js"></script>
+    <script src="js/add-books.js"></script>
 </body>
 
 </html>
