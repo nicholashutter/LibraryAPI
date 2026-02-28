@@ -22,57 +22,83 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @CrossOrigin(origins = "*")
 @RestController
-public class BookController {
+public class BookController
+{
 
     private final BookService bookService;
 
+
     private final String BASE_PATH = "/books";
 
-    public BookController(BookService bookService) {
+
+    public BookController(BookService bookService)
+    {
         this.bookService = bookService;
     }
 
+
     @PostMapping(BASE_PATH)
     @ResponseStatus(HttpStatus.CREATED)
-    public void insertBooks(@RequestBody List<BookDTO> books) {
+    public void insertBooks(@RequestBody List<BookDTO> books)
+    {
 
         log.info("Received request to insert books: {}", books);
+
+
         bookService.insertBooks(books);
     }
 
-    @GetMapping(BASE_PATH + "/{isbn}")
-    public UUID findIdByISBN(@PathVariable String isbn) {
+
+    @GetMapping(BASE_PATH + "/isbn/{isbn}")
+    public UUID findIdByISBN(@PathVariable String isbn)
+    {
         log.info("Received request to find book ID by ISBN: {}", isbn);
+
+
         return bookService.findIdByisbn(isbn);
     }
 
+
     @GetMapping(BASE_PATH)
     @ResponseStatus(HttpStatus.OK)
-    List<BookDTO> getAllBooks() {
-        // get all matching entries
+    List<BookDTO> getAllBooks()
+    {
+
         log.info("Received request to get all books");
+
+
         return bookService.getAllBooks();
     }
 
-    @DeleteMapping(BASE_PATH)
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public int deleteByTitle(@RequestBody BookDTO bookDTO) {
-        log.info("Received request to delete book with title: {}", bookDTO.title());
-        int rowsAffected = bookService.deleteByTitle(bookDTO.title());
-        return rowsAffected;
+
+    @GetMapping(BASE_PATH + "/{id}")
+    public BookDTO getBookById(@PathVariable UUID id)
+    {
+        log.info("Received request to get book by id: {}", id);
+
+
+        return bookService.getById(id);
     }
 
-    @PutMapping(BASE_PATH)
-    @ResponseStatus(HttpStatus.OK)
-    public void updateBook(@RequestBody BookDTO bookDTO) {
-        log.info("Received request to update book with title: {}", bookDTO.title());
-        bookService.updateBook(bookDTO);
+
+    @DeleteMapping(BASE_PATH + "/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteBookById(@PathVariable UUID id)
+    {
+        log.info("Received request to delete book by id: {}", id);
+
+
+        bookService.deleteById(id);
     }
+
 
     @PutMapping(BASE_PATH + "/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void updateBook(@PathVariable UUID id, @RequestBody BookDTO bookDTO) {
+    public void updateBook(@PathVariable UUID id, @RequestBody BookDTO bookDTO)
+    {
         log.info("Received request to update book with title: {}", bookDTO.title());
+
+
         bookService.updateBook(id, bookDTO);
     }
 

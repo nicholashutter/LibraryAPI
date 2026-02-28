@@ -1,5 +1,8 @@
 package com.library.entities;
 
-public record BookDTO(String title, String isbn, String publicationDate, String firstName, String lastName) {
+import java.util.UUID;
+
+public record BookDTO(UUID id, String title, String isbn, String publicationDate, String firstName, String lastName)
+{
 
 }

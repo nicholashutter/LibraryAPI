@@ -16,11 +16,14 @@ import lombok.Setter;
 @NoArgsConstructor
 @Entity
 @Table(name = "author")
-public class Author extends AbstractEntity {
+public class Author extends AbstractEntity
+{
 
     String firstName;
 
+
     String lastName;
+
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Book> books;

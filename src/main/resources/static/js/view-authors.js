@@ -122,6 +122,7 @@ async function saveAuthor(index)
     {
         const existing = currentAuthorStore.originalBooks.find(b => b.title === title);
         return {
+            id: existing ? existing.id : null,
             title: title,
             isbn: existing ? existing.isbn : "",
             publicationDate: existing ? existing.publicationDate : null,
@@ -161,17 +162,17 @@ async function deleteAuthor(index)
     const first = document.getElementById(`edit-first-${index}`).value;
     const last = document.getElementById(`edit-last-${index}`).value;
 
-    if (!confirm(`Delete ${escapeHtml(first)} ${escapeHtml(last)}?`)) return;
+    if (!currentAuthorStore.id)
+    {
+        alert("Session Error: Missing Author ID. Please try again.");
+        return;
+    }
 
-    const payload = {
-        firstName: first,
-        lastName: last,
-        books: currentAuthorStore.originalBooks
-    };
+    if (!confirm(`Delete ${escapeHtml(first)} ${escapeHtml(last)}?`)) return;
 
     try
     {
-        const response = await AuthorAPI.delete(payload);
+        const response = await AuthorAPI.delete(currentAuthorStore.id);
         if (response.ok)
         {
             alert("Deleted.");

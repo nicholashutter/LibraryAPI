@@ -35,6 +35,7 @@ function addBookToList()
     }
 
     const bookObj = {
+        id: null,
         title: sanitize(title),
         isbn: sanitize(isbn),
         publicationDate: pubDate,

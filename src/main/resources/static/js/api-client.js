@@ -158,12 +158,12 @@ const AuthorAPI = {
 
     /**
      * Delete an author
-     * @param {Object} author - Author data
+     * @param {string} id - Author ID
      * @returns {Promise<Object>} - Response
      */
-    delete: async function (author)
+    delete: async function (id)
     {
-        return apiDelete(this.baseUrl, author);
+        return apiDelete(`${this.baseUrl}/${id}`);
     }
 };
 
@@ -225,11 +225,11 @@ const BookAPI = {
 
     /**
      * Delete a book
-     * @param {Object} book - Book data
+     * @param {string} id - Book ID
      * @returns {Promise<Object>} - Response
      */
-    delete: async function (book)
+    delete: async function (id)
     {
-        return apiDelete(this.baseUrl, book);
+        return apiDelete(`${this.baseUrl}/${id}`);
     }
 };

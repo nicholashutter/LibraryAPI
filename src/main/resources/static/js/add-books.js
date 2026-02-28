@@ -49,6 +49,7 @@ async function handleBookSubmit(e)
     }
 
     const bookData = {
+        id: null,
         title: sanitize(rawTitle),
         isbn: rawIsbn.trim(),
         publicationDate: formatToISO(rawPubDate),

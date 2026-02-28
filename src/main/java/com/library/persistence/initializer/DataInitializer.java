@@ -13,21 +13,31 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-public class DataInitializer {
+public class DataInitializer
+{
 
     @Bean
-    CommandLineRunner initDatabase(AuthorRepository authorRepository) {
-        return args -> {
-            if (authorRepository.count() == 0) {
+    CommandLineRunner initDatabase(AuthorRepository authorRepository)
+    {
+        return args ->
+        {
+            if (authorRepository.count() == 0)
+            {
                 System.out.println("Initializing default data...");
+
 
                 Author defaultAuthor = AuthorFactory.createDefaultAuthor();
 
-                try {
+
+                try
+                {
                     authorRepository.save(defaultAuthor);
-                } catch (Exception ex) {
+                }
+                catch (Exception ex)
+                {
                     log.error(Errors.DATABASE_ERROR + ex.getMessage());
                 }
+
 
                 System.out.println("Default Author and Book registered successfully.");
             }

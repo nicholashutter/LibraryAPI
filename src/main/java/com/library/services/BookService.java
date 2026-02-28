@@ -21,96 +21,176 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class BookService {
+public class BookService
+{
 
     private final BookRepository bookRepository;
 
+
     private final AuthorRepository authorRepository;
 
-    public BookService(BookRepository bookRepository, AuthorRepository authorRepository) {
+
+    public BookService(BookRepository bookRepository, AuthorRepository authorRepository)
+    {
         this.bookRepository = bookRepository;
+
+
         this.authorRepository = authorRepository;
     }
 
-    public boolean insertBooks(List<BookDTO> bookDTOs) {
 
-        bookDTOs.stream().forEach(bookDTO -> {
+    public boolean insertBooks(List<BookDTO> bookDTOs)
+    {
+
+        bookDTOs.stream().forEach(bookDTO ->
+        {
 
             Book book = BookMapper.toBook(bookDTO);
+
+
             bookRepository.save(book);
 
+
         });
+
+
         return true;
     }
 
-    public UUID findIdByisbn(String isbn) {
+
+    public UUID findIdByisbn(String isbn)
+    {
         Book book = bookRepository.findIdByisbn(isbn);
+
+
+        if (book == null)
+        {
+            throw new IllegalArgumentException("Book with ISBN " + isbn + " not found");
+        }
+
+
         return book.getId();
     }
 
-    public List<BookDTO> getAllBooks() {
-        // find all, map to DTO, filter out placeholder books, return list
+
+    public List<BookDTO> getAllBooks()
+    {
+
         List<BookDTO> books = new ArrayList<>();
 
-        bookRepository.findAll().stream().forEach(book -> {
+
+        bookRepository.findAll().stream().forEach(book ->
+        {
             if (!book.getAuthor().getFirstName().equals("Unknown") &&
+
+
                     !book.getIsbn().contains("000") &&
-                    !book.getAuthor().getLastName().equals("Book")) {
+
+
+                    !book.getAuthor().getLastName().equals("Book"))
+            {
                 BookDTO dto = BookMapper.toDTO(book, book.getAuthor());
+
+
                 books.add(dto);
             }
         });
 
+
         return books;
     }
 
+
     @Transactional
-    public int deleteByTitle(String title) {
+    public int deleteByTitle(String title)
+    {
         int rowsAffected = bookRepository.deleteByTitle(title);
+
+
         return rowsAffected;
     }
 
 
+    public BookDTO getById(UUID id)
+    {
+        return bookRepository.findById(id)
+                .map(book -> BookMapper.toDTO(book, book.getAuthor()))
+                .orElse(null);
+    }
+
+
     @Transactional
-    public boolean updateBook(BookDTO bookDTO) {
+    public void deleteById(UUID id)
+    {
+        bookRepository.deleteById(id);
+    }
+
+
+    @Transactional
+    public boolean updateBook(BookDTO bookDTO)
+    {
 
         var book = bookRepository.findIdByisbn(bookDTO.isbn());
 
-        if (book != null) {
+
+        if (book != null)
+        {
             return bookMarshaller(book, bookDTO);
         }
+
 
         return false;
     }
 
+
     @Transactional
-    public boolean updateBook(UUID id, BookDTO bookDTO) {
+    public boolean updateBook(UUID id, BookDTO bookDTO)
+    {
 
         Optional<Book> possibleBook = bookRepository.findById(id);
 
+
         Book book = possibleBook.orElse(null);
 
-        if (book != null) {
+
+        if (book != null)
+        {
             return bookMarshaller(book, bookDTO);
         }
+
 
         return false;
     }
 
-    private boolean bookMarshaller(Book book, BookDTO bookDTO) {
+
+    private boolean bookMarshaller(Book book, BookDTO bookDTO)
+    {
 
         BookMapper.updateBookFromDTO(bookDTO, book);
 
-        if (bookDTO.firstName() != null) {
 
-            Author author = AuthorFactory.createAuthor(bookDTO.firstName(), bookDTO.lastName(), List.of(book),
-                    LocalDate.now(), LocalDate.now());
+        if (bookDTO.firstName() != null)
+        {
+
+            Author author = AuthorFactory.createAuthor(bookDTO.firstName(),
+                    bookDTO.lastName(),
+                    List.of(book),
+                    LocalDate.now(),
+                    LocalDate.now());
+
+
             authorRepository.save(author);
+
+
             book.setAuthor(author);
         }
 
+
         bookRepository.save(book);
+
+
         return true;
     }
 
 }
+

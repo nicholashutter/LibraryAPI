@@ -53,7 +53,7 @@ function renderBooks(books)
                 <div class="book-author">By ${escapeHtml(fullName)}</div>
                 <div class="badge book-badge">${sanitizeKey(key) || 'No ISBN'}</div>
                 <div style="margin-top: 15px;">
-                    <button onclick="prepareBookEdit('${sanitizeKey(key)}', '${escapeHtml(book.title)}', '${escapeHtml(first)}', '${escapeHtml(last)}', '${book.publicationDate || ''}')" 
+                    <button onclick="prepareBookEdit('${book.id}', '${sanitizeKey(key)}', '${escapeHtml(book.title)}', '${escapeHtml(first)}', '${escapeHtml(last)}', '${book.publicationDate || ''}')" 
                             class="btn-edit">
                         EDIT
                     </button>
@@ -65,22 +65,15 @@ function renderBooks(books)
 
 /**
  * Prepare book for editing
+ * @param {string} id - Book ID
  * @param {string} isbn - Book ISBN
  * @param {string} title - Book title
  * @param {string} firstName - Author first name
  * @param {string} lastName - Author last name
  * @param {string} pubDate - Publication date
  */
-async function prepareBookEdit(isbn, title, firstName, lastName, pubDate)
+async function prepareBookEdit(id, isbn, title, firstName, lastName, pubDate)
 {
-    const id = await BookAPI.getId(isbn);
-
-    if (!id)
-    {
-        alert("Error: Could not retrieve the unique Database ID for this book.");
-        return;
-    }
-
     currentBookStore.id = id;
     currentBookStore.originalIsbn = isbn;
     enterBookEditMode(isbn, title, firstName, lastName, pubDate);
@@ -128,24 +121,19 @@ function enterBookEditMode(isbn, title, firstName, lastName, pubDate)
 async function deleteBook(cardKey)
 {
     const title = document.getElementById(`edit-title-${cardKey}`).value;
-    const firstName = document.getElementById(`edit-first-${cardKey}`).value;
-    const lastName = document.getElementById(`edit-last-${cardKey}`).value;
-    const pubDate = document.getElementById(`edit-date-${cardKey}`).value;
 
-    const payload = {
-        title: title,
-        isbn: currentBookStore.originalIsbn,
-        publicationDate: pubDate,
-        firstName: firstName,
-        lastName: lastName
-    };
+    if (!currentBookStore.id)
+    {
+        alert("Session Error: Missing Book ID. Please try again.");
+        return;
+    }
 
     const isConfirmed = confirm(`WARNING: You are about to delete "${title}". This action cannot be undone. Do you wish to proceed?`);
     if (!isConfirmed) return;
 
     try
     {
-        const response = await BookAPI.delete(payload);
+        const response = await BookAPI.delete(currentBookStore.id);
         if (response.ok)
         {
             alert("Book deleted successfully.");
@@ -177,11 +165,11 @@ async function saveBook(cardKey)
 
     const payload = {
         id: currentBookStore.id,
-        isbn: currentBookStore.originalIsbn,
         title: document.getElementById(`edit-title-${cardKey}`).value,
-        authorFirstName: document.getElementById(`edit-first-${cardKey}`).value,
-        authorLastName: document.getElementById(`edit-last-${cardKey}`).value,
-        publicationDate: document.getElementById(`edit-date-${cardKey}`).value
+        isbn: currentBookStore.originalIsbn,
+        publicationDate: document.getElementById(`edit-date-${cardKey}`).value,
+        firstName: document.getElementById(`edit-first-${cardKey}`).value,
+        lastName: document.getElementById(`edit-last-${cardKey}`).value
     };
 
     try

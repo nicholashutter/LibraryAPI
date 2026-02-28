@@ -9,10 +9,12 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig {
+public class SecurityConfig
+{
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
+    {
         http
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error", "/login").permitAll()
@@ -21,11 +23,11 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .invalidSessionUrl("/login"))
                 .formLogin(form -> form
-
                         .defaultSuccessUrl("/", true)
                         .permitAll())
                 .httpBasic(org.springframework.security.config.Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable()).headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+
 
         return http.build();
     }
